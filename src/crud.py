@@ -1,13 +1,29 @@
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
+"""
+Crud module
+"""
+
 from typing import Type
-from config.database import Base
-from src import models, schema
 from datetime import datetime
 import uuid
 
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from config.database import Base
+from src import models, schema
 
 def create_model(db: Session, model_schema: Type[BaseModel], model: Type[Base]):
+    """
+    Create a new model instance in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        model_schema (Type[BaseModel]): Pydantic model schema.
+        model (Type[Base]): SQLAlchemy model.
+
+    Returns:
+        db_model: Created model instance.
+    """
     db_model = model(**model_schema.dict())
     db.add(db_model)
     db.commit()
@@ -15,8 +31,17 @@ def create_model(db: Session, model_schema: Type[BaseModel], model: Type[Base]):
     return db_model
 
 
-# CREATE
 def create_visitor(db: Session, name: str):
+    """
+    Create a new visitor record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        name (str): Name of the visitor.
+
+    Returns:
+        Visitor: Created visitor instance.
+    """
     while True:
         new_id = uuid.uuid4()
         existing_visitor = db.query(models.Visitor).filter_by(id=new_id).first()
@@ -29,6 +54,15 @@ def create_visitor(db: Session, name: str):
 
 
 def create_qr(db: Session):
+    """
+    Create a new QR code record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+
+    Returns:
+        Qr: Created QR code instance.
+    """
     while True:
         new_id = uuid.uuid4()
         existing_qr = db.query(models.Qr).filter_by(id=new_id).first()
@@ -40,14 +74,37 @@ def create_qr(db: Session):
         return existing_qr
 
 
-def create_visit(db: Session, name: str, date: datetime, visit: schema.VisitCreate):
-    visit.qr_id = create_qr(db).id
-    visit.visitor_id = create_visitor(db, name).id
+def create_visit(session: Session, name: str, date: datetime, visit: schema.VisitCreate):
+    """
+    Create a new visit record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        name (str): Name of the visitor.
+        date (datetime): Date of the visit.
+        visit (schema.VisitCreate): Visit data.
+
+    Returns:
+        Visit: Created visit instance.
+    """
+    visit.qr_id = create_qr(session).id
+    visit.visitor_id = create_visitor(session, name).id
     visit.date = date
-    return create_model(db, visit, models.Visit)
+    return create_model(session, visit, models.Visit)
 
 
 def create_residence(db: Session, address: str, resident_id: uuid.UUID):
+    """
+    Create a new residence record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        address (str): Address of the residence.
+        resident_id (uuid.UUID): ID of the resident.
+
+    Returns:
+        Residence: Created residence instance.
+    """
     while True:
         new_id = uuid.uuid4()
         existing_residence = db.query(models.Residence).filter_by(id=new_id).first()
@@ -62,6 +119,16 @@ def create_residence(db: Session, address: str, resident_id: uuid.UUID):
 
 
 def create_user(db: Session, user: schema.UserCreate):
+    """
+    Create a new user record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        user (schema.UserCreate): User data.
+
+    Returns:
+        User: Created user instance.
+    """
     while True:
         new_id = uuid.uuid4()
         existing_user = db.query(models.User).filter_by(id=new_id).first()
@@ -74,6 +141,17 @@ def create_user(db: Session, user: schema.UserCreate):
 
 
 def create_resident(db: Session, address: str, resident: schema.ResidentCreate):
+    """
+    Create a new resident record in the database.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        address (str): Address of the residence.
+        resident (schema.ResidentCreate): Resident data.
+
+    Returns:
+        Resident: Created resident instance.
+    """
     user = schema.UserCreate(
         role="resident",
         name=resident.name,
@@ -91,6 +169,12 @@ def create_resident(db: Session, address: str, resident: schema.ResidentCreate):
 
 
 def get_visit_states():
+    """
+    Get the list of visit states.
+
+    Returns:
+        dict: Visit states.
+    """
     list_visits_state = [
         schema.VisitState.PENDING,
         schema.VisitState.REGISTERED,

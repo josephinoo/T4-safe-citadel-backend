@@ -1,37 +1,95 @@
+"""
+Auth 
+"""
+from datetime import datetime, timedelta
+
 import jwt
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
-
 
 class AuthHandler:
+    """
+    Class responsible for handling authentication operations.
+    """
     security = HTTPBearer()
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     secret = "secret"
 
     def get_password_hash(self, password):
+        """
+        Hashes the provided password using the configured password hashing scheme.
+
+        Args:
+            password (str): The plain text password to be hashed.
+
+        Returns:
+            str: The hashed password.
+        """
         return self.pwd_context.hash(password)
 
     def verify_password(self, plain_password, hashed_password):
+        """
+        Verifies if the plain text password matches the hashed password.
+
+        Args:
+            plain_password (str): The plain text password to be verified.
+            hashed_password (str): The hashed password to be compared against.
+
+        Returns:
+            bool: True if the passwords match, False otherwise.
+        """
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def encode_token(self, user_id):
+        """
+        Encodes a JWT token with the provided user ID as the subject.
+
+        Args:
+            user_id (str): The user ID to be encoded in the token.
+
+        Returns:
+            str: The encoded JWT token.
+        """
         payload = {
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=0, minutes=5),
-            "iat": datetime.datetime.utcnow(),
+            "exp": datetime.utcnow() + timedelta(days=0, minutes=5),
+            "iat": datetime.utcnow(),
             "sub": user_id,
         }
         return jwt.encode(payload, self.secret, algorithm="HS256")
 
     def decode_token(self, token):
+        """
+        Decodes a JWT token and returns the subject (user ID) if the token is valid.
+
+        Args:
+            token (str): The JWT token to be decoded.
+
+        Raises:
+            HTTPException: If the token is expired or invalid.
+
+        Returns:
+            str: The user ID (subject) of the token.
+        """
         try:
             payload = jwt.decode(token, self.secret, algorithms=["HS256"])
             return payload["sub"]
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Signature has expired")
+        except jwt.ExpiredSignatureError as exc:
+            raise HTTPException(status_code=401, detail="Signature has expired") from exc
         except jwt.InvalidTokenError as e:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token") from e
 
     def auth_wrapper(self, auth: HTTPAuthorizationCredentials = Security(security)):
+        """
+        Wrapper function for handling authentication in FastAPI routes.
+
+        Args:
+            auth: The credentials extracted from the Authorization header.
+
+        Returns:
+            str: The user ID (subject) of the decoded JWT token.
+
+        Raises:
+            HTTPException: If the token is expired or invalid.
+        """
         return self.decode_token(auth.credentials)

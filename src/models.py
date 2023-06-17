@@ -1,17 +1,28 @@
-from config.database import Base
+"""
+Models 
+"""
+
 from datetime import datetime
 from uuid import uuid4
+from enum import Enum
+
 from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.dialects.postgresql import ENUM
-from enum import Enum
+from sqlalchemy.dialects.postgresql import UUID, ENUM
+
+from config.database import Base
+
 from auth import AuthHandler
+
+
 
 auth_handler = AuthHandler()
 
 
 class VisitState(Enum):
+    """
+    Enumeration of visit states.
+    """
     PENDING = "PENDING"
     REGISTERED = "REGISTERED"
     CANCELLED = "CANCELLED"
@@ -19,6 +30,9 @@ class VisitState(Enum):
 
 
 class User(Base):
+    """
+    User model representing a user in the system.
+    """
     __tablename__ = "user"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -42,10 +56,22 @@ class User(Base):
         return self.username
 
     def verify_password(self, password):
+        """
+        Verify the user's password.
+
+        Args:
+            password (str): Password to verify.
+
+        Returns:
+            bool: True if the password is valid, False otherwise.
+        """
         auth_handler.verify_password(password, self.password)
 
 
 class Visit(Base):
+    """
+    Visit model representing a visit record.
+    """
     __tablename__ = "visit"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -64,6 +90,9 @@ class Visit(Base):
 
 
 class Visitor(Base):
+    """
+    Visitor model representing a visitor in the system.
+    """
     __tablename__ = "visitor"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -76,6 +105,9 @@ class Visitor(Base):
 
 
 class FrequentVisitor(Base):
+    """
+    FrequentVisitor model representing a frequent visitor.
+    """
     __tablename__ = "frequent_visitor"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), ForeignKey("resident.id"), primary_key=True)
@@ -83,6 +115,9 @@ class FrequentVisitor(Base):
 
 
 class Residence(Base):
+    """
+    Residence model representing a residence.
+    """
     __tablename__ = "residence"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -95,6 +130,9 @@ class Residence(Base):
 
 
 class Guard(Base):
+    """
+    Guard model representing a guard.
+    """
     __tablename__ = "guard"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -106,6 +144,9 @@ class Guard(Base):
 
 
 class Resident(Base):
+    """
+    Resident model representing a resident.
+    """
     __tablename__ = "resident"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -120,6 +161,9 @@ class Resident(Base):
 
 
 class Qr(Base):
+    """
+    Qr model representing a QR code.
+    """
     __tablename__ = "qr"
     __table_args__ = {"extend_existing": True}
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
