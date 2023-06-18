@@ -5,9 +5,10 @@ Crud module
 from typing import Type
 from datetime import datetime
 import uuid
-
+import itertools
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import class_mapper, defer
 
 from config.database import Base
 from src import models, schema
@@ -182,3 +183,58 @@ def get_visit_states():
         schema.VisitState.EXPIRED,
     ]
     return {"visit_state": list_visits_state}
+
+
+def get_profile(db: Session, user_id: uuid.UUID):
+    """
+    Get the profile of a user.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        user_id (uuid.UUID): ID of the user.
+
+    Returns:
+        dict: User profile.
+    """
+    user = db.query(models.User).filter_by(id=user_id).first()
+    if user.role == "resident":
+        resident = (
+            db.query(models.Resident).filter_by(user_id=user_id).first()
+        )
+        residence = db.query(models.Residence).filter_by(
+            id =resident.residence_id
+        ).first()
+        return {
+            "user": {"id": user.id, "name": user.name, "username": user.username,
+                     "phone": resident.phone},
+           
+            "residence": {"address": residence.address,
+                          "created_at": residence.created_date,
+                          "information": residence.information}
+        }
+    return {"user": user}
+
+def defer_everything_but(entity, cols):
+    m = class_mapper(entity)
+    return [defer(k) for k in 
+            set(p.key for p 
+                in m.iterate_properties 
+                if hasattr(p, 'columns')).difference(cols)]
+    
+def get_user_visits(db: Session, user_id: uuid.UUID):
+    """
+    Get the visits of a user.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        user_id (uuid.UUID): ID of the user.
+
+    Returns:
+        dict: User visits.
+    """
+    user = db.query(models.User).filter_by(id=user_id).first()
+    if user.role == "resident":
+        resident = db.query(models.Resident).filter_by(user_id=user_id).first()
+        visit = db.query(models.Visit).filter_by(resident_id=resident.id).all()
+        grouped = {k: list(g) for k, g in itertools.groupby(visit, lambda t: t.state)}
+        return {"visits": grouped}
