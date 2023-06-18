@@ -235,3 +235,10 @@ class QrCreate(Qr):
     """
     Model for creating a Qr.
     """
+
+class UserLogin(BaseModel):
+    """
+    Model for login.
+    """
+    username: str
+    password: str

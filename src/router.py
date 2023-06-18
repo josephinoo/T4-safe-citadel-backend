@@ -3,7 +3,8 @@ Router for the API.
 """
 from src import crud, models, schema
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends, HTTPException, APIRouter
+from fastapi import FastAPI, Depends, HTTPException, APIRouter,Request
+
 from src import models, schema
 from config.database import SessionLocal, engine, get_db
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,43 +15,52 @@ models.Base.metadata.create_all(bind=engine)
 router = APIRouter()
 
 
+
 @router.get("/")
-def root():
+def root(request: Request):
     """
     Root endpoint for the API.
     """
     return {"message": "Safe Citadel API"}
 
+@router.post("/api/login/",  tags=["User"])
+async def login_user(user:schema.UserLogin, db: Session = Depends(get_db)):
+    return crud.login(db, user)
+   
+
 @router.get("/visit/states", tags=["Visit States"])
-def get_visit_states():
+def get_visit_states(request: Request):
     """
     Get all visit states.
     """
     return crud.get_visit_states()
 
 
-@router.get("/api/user/{user_id}", tags=["User"])
-def get_user(user_id, db: Session = Depends(get_db)):
+@router.get("/api/user", tags=["User"])
+def get_user(request: Request, db: Session = Depends(get_db)):
     """
     Get user by ID.
     """
+    user_id = request.headers.get("user_id")
     return crud.get_profile(db, user_id=user_id)
 
 
-@router.get("/api/user/{user_id}/visits", tags=["User"])
-def ger_user_visits(user_id, db: Session = Depends(get_db)):
+@router.get("/api/user/visits", tags=["User"])
+def ger_user_visits(request: Request, db: Session = Depends(get_db)):
     """
     Get user visits by ID.
     
     """
+    user_id = request.headers.get("user_id")
     return crud.get_user_visits(db, user_id=user_id)
 
 @router.post("/api/visit/", response_model=schema.Visit, tags=["Visit"])
-def create_visit(name:str ,date: datetime, visit: schema.VisitCreate, db: Session = Depends(get_db)):
+def create_visit(request: Request,name:str ,date: datetime, visit: schema.VisitCreate, db: Session = Depends(get_db)):
     """
     Create a visit.
     """
-    return ""
+    user_id = request.headers.get("user_id")
+    return crud.create_visit(db=db, name=name, date=date, visit=visit, user_id=user_id)
 
 # # User
 # @app_router.post("/login", tags=["User"])

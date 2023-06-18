@@ -9,6 +9,7 @@ import itertools
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import class_mapper, defer
+from fastapi import Response, status
 
 from config.database import Base
 from src import models, schema
@@ -91,7 +92,8 @@ def create_visit(session: Session, name: str, date: datetime, visit: schema.Visi
     visit.qr_id = create_qr(session).id
     visit.visitor_id = create_visitor(session, name).id
     visit.date = date
-    return create_model(session, visit, models.Visit)
+    new_visit = create_model(session, visit, models.Visit)
+    return new_visit
 
 
 def create_residence(db: Session, address: str, resident_id: uuid.UUID):
@@ -197,7 +199,8 @@ def get_profile(db: Session, user_id: uuid.UUID):
         dict: User profile.
     """
     user = db.query(models.User).filter_by(id=user_id).first()
-    if user.role == "resident":
+    
+    if user and user.role == "RESIDENT":
         resident = (
             db.query(models.Resident).filter_by(user_id=user_id).first()
         )
@@ -233,8 +236,27 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
         dict: User visits.
     """
     user = db.query(models.User).filter_by(id=user_id).first()
-    if user.role == "resident":
+
+    if user and  user.role == "RESIDENT":
         resident = db.query(models.Resident).filter_by(user_id=user_id).first()
         visit = db.query(models.Visit).filter_by(resident_id=resident.id).all()
         grouped = {k: list(g) for k, g in itertools.groupby(visit, lambda t: t.state)}
         return {"visits": grouped}
+
+def login(db: Session,user: schema.UserLogin):
+    """
+    Login a user.
+
+    Args:
+        db (Session): SQLAlchemy database session.
+        username (str): Username of the user.
+        password (str): Password of the user.
+
+    Returns:
+        dict: User data.
+    """
+    user = db.query(models.User).filter_by(username=user.username,password=user.password).first()
+    if not user:
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+    return {"user": user}
+

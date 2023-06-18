@@ -8,7 +8,7 @@ from enum import Enum
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID, ENUM,CHAR
+from sqlalchemy.dialects.postgresql import ENUM
 from fastapi_utils.guid_type import GUID
 from config.database import Base
 
@@ -29,6 +29,13 @@ class VisitState(Enum):
     CANCELLED = "CANCELLED"
     EXPIRED = "EXPIRED"
 
+class Role(Enum):
+    """
+    Enumeration of user roles.
+    """
+    RESIDENT = "RESIDENT"
+    GUARD = "GUARD"
+    ADMIN = "ADMIN"
 
 class User(Base):
     """
@@ -38,7 +45,7 @@ class User(Base):
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
     name = Column(String, nullable=False)
-    role = Column(String, nullable=False)
+    role = Column(ENUM(Role), nullable=False)
     created_date = Column(DateTime, default=datetime.now)
     updated_date = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     username = Column(String, nullable=False, unique=True)
@@ -142,7 +149,7 @@ class Guard(Base):
     user = relationship("User", foreign_keys=[user_id], back_populates="guard")
 
     def __str__(self):
-        return f"{self.user.username}"
+        return f"{self.user.name}"
 
 
 class Resident(Base):
@@ -156,10 +163,10 @@ class Resident(Base):
     user_id = Column(GUID, ForeignKey("user.id"))
     user = relationship("User", foreign_keys=[user_id], back_populates="resident")
     residence_id = Column(GUID, ForeignKey("residence.id"))
-    residence = relationship("Residence", back_populates="resident")  # match this with Residence
+    residence = relationship("Residence")  # match this with Residence
 
     def __str__(self):
-        return f"{self.user}"
+        return f"{self.user.name}"
 
 
 class Qr(Base):
