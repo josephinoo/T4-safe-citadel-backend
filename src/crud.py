@@ -277,7 +277,11 @@ def login(db: Session, auth_details: schema.AuthDetails):
     ):
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
     token = auth_handler.encode_token(user.id)
-    return {"token": token}
+    refresh_token = auth_handler.refresh_token(token)
+    return {
+        "token": token,
+        "refresh_token": refresh_token,
+    }
 
 
 def update_password(db: Session, auth_details: schema.AuthDetails):

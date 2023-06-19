@@ -34,7 +34,10 @@ class User(Base):
     created_date = Column(DateTime, default=datetime.utcnow)
     updated_date = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     username = Column(String, nullable=False, unique=True)
-    password = Column(String, nullable=True)
+    password = Column(
+        String,
+        nullable=True,
+    )
     is_active = Column(Boolean, default=True)
     resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
     guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id"))

