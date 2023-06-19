@@ -3,7 +3,7 @@ Router for the API.
 """
 from src import crud, models, schema
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends, HTTPException, APIRouter,Request
+from fastapi import FastAPI, Depends, HTTPException, APIRouter, Request
 
 from src import models, schema
 from config.database import SessionLocal, engine, get_db
@@ -15,7 +15,6 @@ models.Base.metadata.create_all(bind=engine)
 router = APIRouter()
 
 
-
 @router.get("/")
 def root(request: Request):
     """
@@ -23,10 +22,11 @@ def root(request: Request):
     """
     return {"message": "Safe Citadel API"}
 
-@router.post("/api/login/",  tags=["User"])
-async def login_user(user:schema.UserLogin, db: Session = Depends(get_db)):
+
+@router.post("/api/login/", tags=["User"])
+def login_user(user: schema.UserLogin, db: Session = Depends(get_db)):
     return crud.login(db, user)
-   
+
 
 @router.get("/visit/states", tags=["Visit States"])
 def get_visit_states(request: Request):
@@ -49,18 +49,22 @@ def get_user(request: Request, db: Session = Depends(get_db)):
 def ger_user_visits(request: Request, db: Session = Depends(get_db)):
     """
     Get user visits by ID.
-    
+
     """
     user_id = request.headers.get("user_id")
     return crud.get_user_visits(db, user_id=user_id)
 
-@router.post("/api/visit/", response_model=schema.Visit, tags=["Visit"])
-def create_visit(request: Request,name:str ,date: datetime, visit: schema.VisitCreate, db: Session = Depends(get_db)):
+
+@router.post("/api/visit/", tags=["Visit"])
+def create_visit(
+    request: Request, name: str, date: datetime, db: Session = Depends(get_db)
+):
     """
     Create a visit.
     """
     user_id = request.headers.get("user_id")
-    return crud.create_visit(db=db, name=name, date=date, visit=visit, user_id=user_id)
+    return crud.create_visit(session=db, name=name, date=date, user_id=user_id)
+
 
 # # User
 # @app_router.post("/login", tags=["User"])

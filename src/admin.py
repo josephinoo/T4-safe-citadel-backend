@@ -1,18 +1,16 @@
 """
 Admin views for the models.
 """
-from sqladmin import ModelView,BaseView
+from sqladmin import ModelView
 from src.models import User, Visit, Visitor, Resident, Residence, Qr, Guard
-
 from sqladmin import Admin
 
 
-    
 class UserAdmin(ModelView, model=User):
     """
     Admin view for the User model.
     """
-    
+
     column_list = [User.id, User.name, User.username, User.role]
     icon = "fas fa-user"
 
@@ -26,10 +24,7 @@ class VisitAdmin(ModelView, model=Visit):
         Visit.id,
         Visit.date,
         Visit.state,
-        Visit.visitor_id,
-        Visit.guard_id,
-        Visit.additional_info,
-        Visit.qr_id,
+        Visit.visitor,
         Visit.resident_id,
     ]
     icon = "fas fa-user-friends"
@@ -94,7 +89,8 @@ admin_views = [
     GuardAdmin,
 ]
 
-def add_views_to_app(app,engine):
+
+def add_views_to_app(app, engine):
     """
     Adds the admin views to the app.
     """

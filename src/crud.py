@@ -14,6 +14,7 @@ from fastapi import Response, status
 from config.database import Base
 from src import models, schema
 
+
 def create_model(db: Session, model_schema: Type[BaseModel], model: Type[Base]):
     """
     Create a new model instance in the database.
@@ -76,7 +77,7 @@ def create_qr(db: Session):
         return existing_qr
 
 
-def create_visit(session: Session, name: str, date: datetime, visit: schema.VisitCreate):
+def create_visit(session: Session, name: str, date: datetime, user_id: uuid.UUID):
     """
     Create a new visit record in the database.
 
@@ -89,9 +90,13 @@ def create_visit(session: Session, name: str, date: datetime, visit: schema.Visi
     Returns:
         Visit: Created visit instance.
     """
+    visit = schema.VisitCreate()
+    resident = session.query(models.Resident).filter_by(user_id=user_id).first()
     visit.qr_id = create_qr(session).id
     visit.visitor_id = create_visitor(session, name).id
     visit.date = date
+    visit.resident_id = resident.id
+    visit.state = schema.VisitState.PENDING
     new_visit = create_model(session, visit, models.Visit)
     return new_visit
 
@@ -199,31 +204,38 @@ def get_profile(db: Session, user_id: uuid.UUID):
         dict: User profile.
     """
     user = db.query(models.User).filter_by(id=user_id).first()
-    
+
     if user and user.role == "RESIDENT":
-        resident = (
-            db.query(models.Resident).filter_by(user_id=user_id).first()
+        resident = db.query(models.Resident).filter_by(user_id=user_id).first()
+        residence = (
+            db.query(models.Residence).filter_by(id=resident.residence_id).first()
         )
-        residence = db.query(models.Residence).filter_by(
-            id =resident.residence_id
-        ).first()
         return {
-            "user": {"id": user.id, "name": user.name, "username": user.username,
-                     "phone": resident.phone},
-           
-            "residence": {"address": residence.address,
-                          "created_at": residence.created_date,
-                          "information": residence.information}
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "username": user.username,
+                "phone": resident.phone,
+            },
+            "residence": {
+                "address": residence.address,
+                "created_at": residence.created_date,
+                "information": residence.information,
+            },
         }
     return {"user": user}
 
+
 def defer_everything_but(entity, cols):
     m = class_mapper(entity)
-    return [defer(k) for k in 
-            set(p.key for p 
-                in m.iterate_properties 
-                if hasattr(p, 'columns')).difference(cols)]
-    
+    return [
+        defer(k)
+        for k in {
+            p.key for p in m.iterate_properties if hasattr(p, "columns")
+        }.difference(cols)
+    ]
+
+
 def get_user_visits(db: Session, user_id: uuid.UUID):
     """
     Get the visits of a user.
@@ -237,13 +249,14 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
     """
     user = db.query(models.User).filter_by(id=user_id).first()
 
-    if user and  user.role == "RESIDENT":
+    if user and user.role == "RESIDENT":
         resident = db.query(models.Resident).filter_by(user_id=user_id).first()
         visit = db.query(models.Visit).filter_by(resident_id=resident.id).all()
         grouped = {k: list(g) for k, g in itertools.groupby(visit, lambda t: t.state)}
         return {"visits": grouped}
 
-def login(db: Session,user: schema.UserLogin):
+
+def login(db: Session, user: schema.UserLogin):
     """
     Login a user.
 
@@ -255,8 +268,12 @@ def login(db: Session,user: schema.UserLogin):
     Returns:
         dict: User data.
     """
-    user = db.query(models.User).filter_by(username=user.username,password=user.password).first()
+    user = (
+        db.query(models.User)
+        .filter_by(username=user.username, password=user.password)
+        .first()
+    )
+    print(user)
     if not user:
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
     return {"user": user}
-

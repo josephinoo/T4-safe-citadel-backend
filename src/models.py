@@ -1,5 +1,5 @@
 """
-Models 
+Models
 """
 
 from datetime import datetime
@@ -15,8 +15,6 @@ from config.database import Base
 from auth import AuthHandler
 
 
-
-
 auth_handler = AuthHandler()
 
 
@@ -24,23 +22,28 @@ class VisitState(Enum):
     """
     Enumeration of visit states.
     """
+
     PENDING = "PENDING"
     REGISTERED = "REGISTERED"
     CANCELLED = "CANCELLED"
     EXPIRED = "EXPIRED"
 
+
 class Role(Enum):
     """
     Enumeration of user roles.
     """
+
     RESIDENT = "RESIDENT"
     GUARD = "GUARD"
     ADMIN = "ADMIN"
+
 
 class User(Base):
     """
     User model representing a user in the system.
     """
+
     __tablename__ = "user"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
@@ -54,10 +57,12 @@ class User(Base):
     resident = relationship(
         "Resident",
         back_populates="user",
+        lazy="joined",  # eager loading
     )
     guard = relationship(
         "Guard",
         back_populates="user",
+        lazy="joined",  # eager loading
     )
 
     def __str__(self):
@@ -80,6 +85,7 @@ class Visit(Base):
     """
     Visit model representing a visit record.
     """
+
     __tablename__ = "visit"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
@@ -101,6 +107,7 @@ class Visitor(Base):
     """
     Visitor model representing a visitor in the system.
     """
+
     __tablename__ = "visitor"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
@@ -116,6 +123,7 @@ class FrequentVisitor(Base):
     """
     FrequentVisitor model representing a frequent visitor.
     """
+
     __tablename__ = "frequent_visitor"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, ForeignKey("resident.id"), primary_key=True)
@@ -126,6 +134,7 @@ class Residence(Base):
     """
     Residence model representing a residence.
     """
+
     __tablename__ = "residence"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
@@ -142,6 +151,7 @@ class Guard(Base):
     """
     Guard model representing a guard.
     """
+
     __tablename__ = "guard"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
@@ -156,12 +166,15 @@ class Resident(Base):
     """
     Resident model representing a resident.
     """
+
     __tablename__ = "resident"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
     phone = Column(String, nullable=False)
     user_id = Column(GUID, ForeignKey("user.id"))
-    user = relationship("User", foreign_keys=[user_id], back_populates="resident")
+    user = relationship(
+        "User", foreign_keys=[user_id], back_populates="resident", lazy="joined"
+    )
     residence_id = Column(GUID, ForeignKey("residence.id"))
     residence = relationship("Residence")  # match this with Residence
 
@@ -173,6 +186,7 @@ class Qr(Base):
     """
     Qr model representing a QR code.
     """
+
     __tablename__ = "qr"
     __table_args__ = {"extend_existing": True}
     id = Column(GUID, primary_key=True, default=uuid4)
