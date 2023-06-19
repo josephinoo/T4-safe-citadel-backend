@@ -13,6 +13,9 @@ from fastapi import Response, status
 
 from config.database import Base
 from src import models, schema
+from auth import AuthHandler
+
+auth_handler = AuthHandler()
 
 
 def create_model(db: Session, model_schema: Type[BaseModel], model: Type[Base]):
@@ -256,7 +259,7 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
         return {"visits": grouped}
 
 
-def login(db: Session, user: schema.UserLogin):
+def login(db: Session, auth_details: schema.AuthDetails):
     """
     Login a user.
 
@@ -268,12 +271,23 @@ def login(db: Session, user: schema.UserLogin):
     Returns:
         dict: User data.
     """
-    user = (
-        db.query(models.User)
-        .filter_by(username=user.username, password=user.password)
-        .first()
-    )
-    print(user)
+    user = db.query(models.User).filter_by(username=auth_details.username).first()
+    if (user is None) or (
+        not auth_handler.verify_password(auth_details.password, user.password)
+    ):
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+    token = auth_handler.encode_token(user.id)
+    return {"token": token}
+
+
+def update_password(db: Session, auth_details: schema.AuthDetails):
+    """
+    Update user password
+    """
+    user = db.query(models.User).filter_by(username=auth_details.username).first()
     if not user:
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+    hash_password = auth_handler.get_password_hash(auth_details.password)
+    user.password = hash_password
+    db.commit()
     return {"user": user}

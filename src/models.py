@@ -3,9 +3,10 @@ from uuid import uuid4
 from enum import Enum
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Boolean
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from config.database import Base
+from fastapi import Request
 
 from auth import AuthHandler
 
@@ -35,11 +36,20 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
-    resident = relationship("Resident", back_populates="user", uselist=False)
-    guard = relationship("Guard", back_populates="user", uselist=False)
+    resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
+    guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id"))
+    resident = relationship(
+        "Resident", back_populates="user", uselist=False, foreign_keys=[resident_id]
+    )
+    guard = relationship(
+        "Guard", back_populates="user", uselist=False, foreign_keys=[guard_id]
+    )
 
     def __str__(self):
-        return self.username
+        return self.name
+
+    async def __admin_repr__(self, request: Request):
+        return f"{self.name}"
 
     def verify_password(self, password):
         return auth_handler.verify_password(password, self.password)
@@ -61,6 +71,9 @@ class Visit(Base):
     guard = relationship("Guard", back_populates="visits")
     resident = relationship("Resident", back_populates="visits")
 
+    async def __admin_repr__(self, request: Request):
+        return f"{self.state} - {self.date}"
+
 
 class Visitor(Base):
     __tablename__ = "visitor"
@@ -70,15 +83,8 @@ class Visitor(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     visits = relationship("Visit", back_populates="visitor")
 
-    def __str__(self):
-        return self.name
-
-
-class FrequentVisitor(Base):
-    __tablename__ = "frequent_visitor"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
-    visitor_id = Column(UUID(as_uuid=True), ForeignKey("visitor.id"))
+    async def __admin_repr__(self, request: Request):
+        return f"{self.name}"
 
 
 class Residence(Base):
@@ -88,34 +94,35 @@ class Residence(Base):
     created_date = Column(DateTime, default=datetime.utcnow)
     information = Column(JSON, nullable=True)
     resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
-    resident = relationship("Resident", back_populates="residence")
+    resident = relationship("Resident", back_populates="residence", uselist=False)
 
-    def __str__(self):
-        return self.address
+    async def __admin_repr__(self, request: Request):
+        return f"{self.address}"
 
 
 class Guard(Base):
     __tablename__ = "guard"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
     user = relationship("User", back_populates="guard")
     visits = relationship("Visit", back_populates="guard")
 
-    def __str__(self):
-        return f"{self.user.name}"
+    async def __admin_repr__(self, request: Request):
+        return f"{self.id}"
 
 
 class Resident(Base):
     __tablename__ = "resident"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     phone = Column(String, nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
     user = relationship("User", back_populates="resident")
-    residence = relationship("Residence", back_populates="resident")
+    residence = relationship("Residence", back_populates="resident", uselist=False)
     visits = relationship("Visit", back_populates="resident")
 
+    async def __admin_repr__(self, request: Request):
+        return f"{self.id}"
+
     def __str__(self):
-        return f"{self.user.name}"
+        return f"{self.user}"
 
 
 class Qr(Base):

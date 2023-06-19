@@ -9,7 +9,7 @@ from src import models, schema
 from config.database import get_session, engine
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-
+from src.schema import AuthDetails
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -24,14 +24,9 @@ def root(request: Request):
     return {"message": "Safe Citadel API"}
 
 
-@router.get("/admin")
-def admin(request: Request):
-    return {"users_count": "1"}
-
-
 @router.post("/api/login/", tags=["User"])
-def login_user(user: schema.UserLogin, db: Session = Depends(get_session)):
-    return crud.login(db, user)
+def login_user(auth_details: AuthDetails, db: Session = Depends(get_session)):
+    return crud.login(db, auth_details)
 
 
 @router.get("/visit/states", tags=["Visit States"])
@@ -72,54 +67,9 @@ def create_visit(
     return crud.create_visit(session=db, name=name, date=date, user_id=user_id)
 
 
-# # User
-# @app_router.post("/login", tags=["User"])
-# def login(username: str, password=str, db: Session = Depends(get_session)):
-#     """
-#     Login endpoint for the user.
-
-#     Args:
-#         username (str): User's username.
-#         password (str): User's password.
-#         db (Session): SQLAlchemy database session.
-
-#     Returns:
-#         str: Placeholder return value.
-#     """
-#     return ""
-
-
-# # # GET
-# # @app_router.get("/api/user/{user_id}", response_model=schema.User, tags=["User"])
-# # def get_user(user_id: str, db: Session = Depends(get_session)):
-# #     db_user = crud.get_user(db, user_id=user_id)
-# #     if db_user is None:
-# #         raise HTTPException(status_code=404, detail="User not found")
-# #     return db_user
-
-
-# # @app_router.get("/visit/states", tags=["Visit States"])
-# # def get_visit_states(db: Session = Depends(get_session)):
-# #     return crud.get_visit_states()
-
-
-# # # POST
-
-
-# # app_router.post("/api/user/", response_model=schema.User, tags=["User"])
-# # def create_user(user: schema.UserCreate, db: Session = Depends(get_session)):
-# #     return crud.create_user(db=db, user=user)
-
-
-# # app_router.post("/api/visit/", response_model=schema.Visit, tags=["Visit"])
-# # def create_visit(
-# #     visit: schema.VisitCreate, name: str, date: datetime, db: Session = Depends(get_session)
-# # ):
-# #     return crud.create_visit(db=db, name=name, date=date, visit=visit)
-
-
-# # app_router.post("/api/resident/", response_model=schema.Resident, tags=["Resident"])
-# # def create_resident(
-# #     resident: schema.ResidentCreate, address: str, db: Session = Depends(get_session)
-# # ):
-# #     return crud.create_resident(db=db, resident=resident, address=address)
+@router.post("/api/user/update-password", tags=["User"], status_code=201)
+def update_password(auth_details: AuthDetails, db: Session = Depends(get_session)):
+    """
+    Update user password.
+    """
+    return crud.update_password(db, auth_details=auth_details)
