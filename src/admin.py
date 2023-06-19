@@ -2,8 +2,13 @@
 Admin views for the models.
 """
 from sqladmin import ModelView
-from src.models import User, Visit, Visitor, Resident, Residence, Qr, Guard
-from sqladmin import Admin
+from src.models import User, Visit, Visitor, Resident, Residence, Qr, Guard, Role
+from sqlalchemy import select, func
+from sqladmin import Admin, BaseView, expose
+from config.database import get_session
+
+
+Session = get_session()
 
 
 class UserAdmin(ModelView, model=User):

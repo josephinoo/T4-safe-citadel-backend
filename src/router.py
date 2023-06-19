@@ -10,6 +10,7 @@ from config.database import get_session, engine
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
+
 models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter()
@@ -21,6 +22,11 @@ def root(request: Request):
     Root endpoint for the API.
     """
     return {"message": "Safe Citadel API"}
+
+
+@router.get("/admin")
+def admin(request: Request):
+    return {"users_count": "1"}
 
 
 @router.post("/api/login/", tags=["User"])
