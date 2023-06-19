@@ -7,9 +7,9 @@ from uuid import uuid4
 from enum import Enum
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Session
 from sqlalchemy.dialects.postgresql import ENUM
-from fastapi_utils.guid_type import GUID
+from sqlalchemy.dialects.postgresql import UUID
 from config.database import Base
 
 from auth import AuthHandler
@@ -46,7 +46,7 @@ class User(Base):
 
     __tablename__ = "user"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String, nullable=False)
     role = Column(ENUM(Role), nullable=False)
     created_date = Column(DateTime, default=datetime.now)
@@ -54,16 +54,8 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True, unique=True, default=None)
     is_active = Column(Boolean, default=True)
-    resident = relationship(
-        "Resident",
-        back_populates="user",
-        lazy="joined",  # eager loading
-    )
-    guard = relationship(
-        "Guard",
-        back_populates="user",
-        lazy="joined",  # eager loading
-    )
+    resident = relationship("Resident", back_populates="user", lazy="joined")
+    guard = relationship("Guard", back_populates="user", lazy="joined")
 
     def __str__(self):
         return self.username
@@ -88,15 +80,15 @@ class Visit(Base):
 
     __tablename__ = "visit"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     created_date = Column(DateTime, default=datetime.now)
     date = Column(DateTime, nullable=False)
     state = Column(ENUM(VisitState), nullable=False, default=VisitState.PENDING)
     additional_info = Column(JSON, nullable=True)
-    qr_id = Column(GUID, ForeignKey("qr.id"))
-    visitor_id = Column(GUID, ForeignKey("visitor.id"))
-    guard_id = Column(GUID, ForeignKey("guard.id"))
-    resident_id = Column(GUID, ForeignKey("resident.id"))
+    qr_id = Column(UUID(as_uuid=True), ForeignKey("qr.id"))
+    visitor_id = Column(UUID(as_uuid=True), ForeignKey("visitor.id"))
+    guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id"))
+    resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
     qr = relationship("Qr", foreign_keys=[qr_id])
     visitor = relationship("Visitor", foreign_keys=[visitor_id])
     guard = relationship("Guard", foreign_keys=[guard_id])
@@ -110,7 +102,7 @@ class Visitor(Base):
 
     __tablename__ = "visitor"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
@@ -126,8 +118,8 @@ class FrequentVisitor(Base):
 
     __tablename__ = "frequent_visitor"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, ForeignKey("resident.id"), primary_key=True)
-    visitor_id = Column(GUID, ForeignKey("visitor.id"))
+    id = Column(UUID(as_uuid=True), ForeignKey("resident.id"), primary_key=True)
+    visitor_id = Column(UUID(as_uuid=True), ForeignKey("visitor.id"))
 
 
 class Residence(Base):
@@ -137,7 +129,7 @@ class Residence(Base):
 
     __tablename__ = "residence"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     address = Column(String, nullable=False)
     created_date = Column(DateTime, default=datetime.now)
     information = Column(JSON, nullable=True)
@@ -154,8 +146,8 @@ class Guard(Base):
 
     __tablename__ = "guard"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
-    user_id = Column(GUID, ForeignKey("user.id"))
+    id = Column(UUID, primary_key=True, default=uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
     user = relationship("User", foreign_keys=[user_id], back_populates="guard")
 
     def __str__(self):
@@ -169,17 +161,28 @@ class Resident(Base):
 
     __tablename__ = "resident"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     phone = Column(String, nullable=False)
-    user_id = Column(GUID, ForeignKey("user.id"))
-    user = relationship(
-        "User", foreign_keys=[user_id], back_populates="resident", lazy="joined"
-    )
-    residence_id = Column(GUID, ForeignKey("residence.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"))
+    user = relationship("User", foreign_keys=[user_id], back_populates="resident")
+    residence_id = Column(UUID(as_uuid=True), ForeignKey("residence.id"))
     residence = relationship("Residence")  # match this with Residence
 
     def __str__(self):
         return f"{self.user.name}"
+
+    def get_user(self, session: Session) -> User:
+        """
+        Retorna el objeto User asociado al Resident, realizando una carga impaciente.
+
+        Args:
+            session (Session): Sesión de SQLAlchemy.
+
+        Returns:
+            User: Objeto User asociado al Resident.
+        """
+        session.refresh(self)
+        return self.user
 
 
 class Qr(Base):
@@ -189,7 +192,7 @@ class Qr(Base):
 
     __tablename__ = "qr"
     __table_args__ = {"extend_existing": True}
-    id = Column(GUID, primary_key=True, default=uuid4)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     created_date = Column(DateTime, default=datetime.now)
     code = Column(String, default=str(uuid4()))
 

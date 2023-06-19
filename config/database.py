@@ -3,27 +3,21 @@ Database Configuration
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
+DATABASE_URL = "postgresql://sfe:sfe@localhost/safe_db"
 
-SQLITE_DATABASE_URL = "sqlite:///./database.db"
-
-engine = create_engine(
-    SQLITE_DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(DATABASE_URL)
 
 Base = declarative_base()
 
 
-def get_db():
+def get_session() -> sessionmaker:
     """
-    Create a new database session.
-
-    Yields:
-        Session: SQLAlchemy database session.
+    Get a new database session.
     """
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = SessionLocal()
     try:
         yield session
