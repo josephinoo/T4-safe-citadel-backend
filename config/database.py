@@ -5,9 +5,22 @@ Database Configuration
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+import os, sys
+from dotenv import load_dotenv
 
-DATABASE_URL = "postgresql://sfe:sfe@localhost/safe_db"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+sys.path.append(BASE_DIR)
 
+HOSTNAME = os.environ["HOSTNAME"]
+PORT = os.environ["PORT"]
+DATABASE_NAME = os.environ["DATABASE_NAME"]
+DATABASE_USER = os.environ["DATABASE_USER"]
+DATABAS_PASSWORD = os.environ["DATABASE_PASSWORD"]
+
+DATABASE_URL = (
+    f"postgresql://{DATABASE_USER}:{DATABAS_PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE_NAME}"
+)
 engine = create_engine(DATABASE_URL)
 
 Base = declarative_base()

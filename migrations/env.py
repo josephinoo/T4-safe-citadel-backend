@@ -19,7 +19,17 @@ sys.path.append(BASE_DIR)
 config = context.config
 
 #  Making a connection
-config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
+
+HOSTNAME = os.environ["HOSTNAME"]
+PORT = os.environ["PORT"]
+DATABASE_NAME = os.environ["DATABASE_NAME"]
+DATABASE_USER = os.environ["DATABASE_USER"]
+DATABAS_PASSWORD = os.environ["DATABAS_PASSWORD"]
+DATABASE_URL = (
+    f"postgresql://{DATABASE_USER}:{DATABAS_PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE_NAME}"
+)
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
+
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
