@@ -1,0 +1,5 @@
+PORT = "5432"
+HOSTNAME = "dpg-ci8auop8g3n3vm4pvh8g-a"
+DATABASE_NAME = "safe_db"
+DATABASE_USER = "sfe"
+DATABASE_PASSWORD = "RZxAMBOhoSSh2VCAuk5Yeu3B4GRGlsOU"

@@ -17,15 +17,7 @@ router = APIRouter()
 auth_handler = AuthHandler()
 
 
-@router.get("/")
-def root(request: Request):
-    """
-    Root endpoint for the API.
-    """
-    return {"message": "Safe Citadel API"}
-
-
-@router.post("/api/login/", tags=["User"])
+@router.post("/api/login/", tags=["Authorization"])
 def login_user(auth_details: AuthDetails, db: Session = Depends(get_session)):
     return crud.login(db, auth_details)
 
@@ -77,7 +69,7 @@ def create_visit(
     return crud.create_visit(session=db, name=name, date=date, user_id=user_id)
 
 
-@router.post("/api/user/update-password", tags=["User"], status_code=201)
+@router.post("/api/user/update-password", tags=["Authorization"], status_code=201)
 def update_password(auth_details: AuthDetails, db: Session = Depends(get_session)):
     """
     Update user password.
@@ -85,7 +77,7 @@ def update_password(auth_details: AuthDetails, db: Session = Depends(get_session
     return crud.update_password(db, auth_details=auth_details)
 
 
-@router.get("/api/refresh", status_code=status.HTTP_200_OK, tags=["Token"])
+@router.get("/api/refresh", status_code=status.HTTP_200_OK, tags=["Authorization"])
 def get_new_access_token(token: str):
     refesh_data = auth_handler.verify_refresh_token(token)
     new_access_token = auth_handler.create_access_token(refesh_data)
