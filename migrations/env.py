@@ -7,13 +7,8 @@ from alembic import context
 
 # My code
 import os
-import sys
 from dotenv import load_dotenv
 import src.models as models
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(BASE_DIR, ".env"))
-sys.path.append(BASE_DIR)
 
 
 # This is the Alembic Config object, which provides
@@ -22,14 +17,10 @@ config = context.config
 
 #  Making a connection
 
-HOSTNAME = os.environ["HOSTNAME"]
-PORT = os.environ["PORT"]
-DATABASE_NAME = os.environ["DATABASE_NAME"]
-DATABASE_USER = os.environ["DATABASE_USER"]
-DATABAS_PASSWORD = os.environ["DATABAS_PASSWORD"]
-DATABASE_URL = (
-    f"postgresql://{DATABASE_USER}:{DATABAS_PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE_NAME}"
-)
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 
