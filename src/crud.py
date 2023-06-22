@@ -1,19 +1,15 @@
-"""
-Crud module
-"""
-
-from typing import Type
-from datetime import datetime
-import uuid
 import itertools
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import class_mapper, defer
-from fastapi import Response, status
+import uuid
+from datetime import datetime
+from typing import Type  # noqa: UP035
 
+from fastapi import Response, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session, class_mapper, defer
+
+from auth import AuthHandler
 from config.database import Base
 from src import models, schema
-from auth import AuthHandler
 
 auth_handler = AuthHandler()
 

@@ -2,28 +2,30 @@
 Main module for the FastAPI application.
 """
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config.database import engine
+from config.database import Base, engine, get_session
 from src.admin import add_views_to_app
 from src.router import router
-from config.database import get_session, Base
-
 
 engine_db = engine
 
 description = """
-🏰 El Safe Citadel API es una interfaz de programación de aplicaciones (API) diseñada para el control seguro de visitas a una ciudadela.
+🏰 El Safe Citadel API es una interfaz de programación de aplicaciones (API)\n#
+diseñada para el control seguro de visitas a una ciudadela.
 ### ✨ Características:
 
 - Gestión de reservas
 - Verificación de identidad de visitantes
 - Generación de códigos de acceso únicos
 - Registro de eventos de accesoia
-🔒 Proporciona una solución completa y confiable para el control de visitas a la ciudadela, garantizando la seguridad y el orden en el acceso al sitio histórico.
+🔒 Proporciona una solución completa y confiable para el control de \n#
+visitas a la ciudadela, garantizando la seguridad y el orden en el acceso
+al sitio histórico.
 
-¡Experimenta la tranquilidad de administrar y controlar las visitas a la ciudadela de manera segura con el Safe Citadel API! 🚪🔐"""
+¡Experimenta la tranquilidad de administrar y controlar las visitas a la ciudadela de
+manera segura con el Safe Citadel API! 🚪🔐"""
 
 tags_metadata = [
     {"name": "Authorization", "description": "Autenticación de usuarios"},

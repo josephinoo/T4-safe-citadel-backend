@@ -6,8 +6,10 @@ from sqlalchemy import pool
 from alembic import context
 
 # My code
-import os, sys
+import os
+import sys
 from dotenv import load_dotenv
+import src.models as models
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -34,9 +36,6 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
-
-
-import src.models as models
 
 # add your model's MetaData object here
 # for 'autogenerate' support

@@ -1,14 +1,14 @@
 from datetime import datetime
-from uuid import uuid4
 from enum import Enum
+from uuid import uuid4
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Boolean
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ENUM, UUID
-from config.database import Base
 from fastapi import Request
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy.dialects.postgresql import ENUM, UUID
+from sqlalchemy.orm import relationship
 
 from auth import AuthHandler
+from config.database import Base
 
 auth_handler = AuthHandler()
 

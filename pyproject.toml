@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "Safe Citadel"
+readme = "README.md"
+version = "0.0.1"
+authors = [{name = "Joseph Avila", email= "josdavilalvarez@gmail.com"}]
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+exclude = [
+    "venv",
+    "migrations",
+]
+
+
+[tool.ruff.pydocstyle]
+convention = "google"

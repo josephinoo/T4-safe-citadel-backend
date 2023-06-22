@@ -1,5 +1,6 @@
 from starlette_admin.contrib.sqla import Admin, ModelView
-from src.models import User, Resident, Residence, Visit, Qr, Guard, Visitor
+
+from src.models import Guard, Qr, Residence, Resident, User, Visit, Visitor
 
 
 def add_views_to_app(app, engine_db):
@@ -11,5 +12,4 @@ def add_views_to_app(app, engine_db):
     admin.add_view(ModelView(Qr, icon="fa fa-qrcode"))
     admin.add_view(ModelView(Guard, icon="fa fa-shield"))
     admin.add_view(ModelView(Visitor, icon="fa fa-user"))
-
     admin.mount_to(app)

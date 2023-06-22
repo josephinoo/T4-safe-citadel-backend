@@ -1,15 +1,12 @@
-"""
-Router for the API.
-"""
-from src import crud, models
-from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends, APIRouter, Request, status
-
-
-from config.database import get_session, engine
 from datetime import datetime
-from src.schema import AuthDetails
+
+from fastapi import APIRouter, Depends, Request, status
+from sqlalchemy.orm import Session
+
 from auth import AuthHandler
+from config.database import engine, get_session
+from src import crud, models
+from src.schema import AuthDetails
 
 models.Base.metadata.create_all(bind=engine)
 
