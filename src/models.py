@@ -7,8 +7,8 @@ from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import relationship
 
-from auth import AuthHandler
-from config.database import Base
+from .auth import AuthHandler
+from .config.database import Base
 
 auth_handler = AuthHandler()
 

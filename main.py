@@ -5,8 +5,8 @@ Main module for the FastAPI application.
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config.database import Base, engine, get_session
 from src.admin import add_views_to_app
+from src.config.database import Base, engine, get_session
 from src.router import router
 
 engine_db = engine

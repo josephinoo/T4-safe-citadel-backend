@@ -3,10 +3,10 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
-from auth import AuthHandler
-from config.database import engine, get_session
-from src import crud, models
-from src.schema import AuthDetails
+from . import crud, models
+from .auth import AuthHandler
+from .config.database import engine, get_session
+from .schema import AuthDetails
 
 models.Base.metadata.create_all(bind=engine)
 
