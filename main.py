@@ -2,6 +2,9 @@
 Main module for the FastAPI application.
 """
 
+import os
+import sys
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -9,6 +12,11 @@ from starlette.middleware.sessions import SessionMiddleware
 from src.admin import add_views_to_app
 from src.config.database import Base, engine, get_session
 from src.router import router
+
+# Agregar el directorio padre al PYTHONPATH
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
 
 engine_db = engine
 
