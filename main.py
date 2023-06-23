@@ -4,6 +4,7 @@ Main module for the FastAPI application.
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from src.admin import add_views_to_app
 from src.config.database import Base, engine, get_session
@@ -44,6 +45,8 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata,
 )
+app.add_middleware(SessionMiddleware, secret_key="some-random-string")
+
 Base.metadata.create_all(bind=engine_db)
 
 

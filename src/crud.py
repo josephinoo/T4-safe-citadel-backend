@@ -3,13 +3,13 @@ import uuid
 from datetime import datetime
 from typing import Type  # noqa: UP035
 
-from config.database import Base
 from fastapi import Response, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, class_mapper, defer
 
 from . import models, schema
 from .auth import AuthHandler
+from .config.database import Base
 
 auth_handler = AuthHandler()
 
@@ -90,7 +90,8 @@ def create_visit(session: Session, name: str, date: datetime, user_id: uuid.UUID
         Visit: Created visit instance.
     """
     visit = schema.VisitCreate()
-    resident = session.query(models.Resident).filter_by(user_id=user_id).first()
+    resident = session.query(models.Resident)
+    resident = resident.join(models.User).filter(models.User.id == user_id).first()
     visit.qr_id = create_qr(session).id
     visit.visitor_id = create_visitor(session, name).id
     visit.date = date

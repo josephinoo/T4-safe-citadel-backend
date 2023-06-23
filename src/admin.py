@@ -1,10 +1,11 @@
 from starlette_admin.contrib.sqla import Admin, ModelView
 
+from src.auth import MyAuthProvider
 from src.models import Guard, Qr, Residence, Resident, User, Visit, Visitor
 
 
 def add_views_to_app(app, engine_db):
-    admin = Admin(engine_db, title="Safe Citadel API")
+    admin = Admin(engine_db, title="Safe Citadel API", auth_provider=MyAuthProvider())
     admin.add_view(ModelView(User, icon="fa fa-user", label="User"))
     admin.add_view(ModelView(Resident, icon="fa fa-user"))
     admin.add_view(ModelView(Residence, icon="fa fa-home"))
