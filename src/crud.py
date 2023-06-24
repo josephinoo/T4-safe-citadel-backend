@@ -256,6 +256,12 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
             return Response(status_code=status.HTTP_401_UNAUTHORIZED)
         visits = db.query(models.Visit).filter_by(resident_id=resident.id).all()
         grouped = utils.grouped_dict(visits, "state")
+        for key in grouped.keys():
+            for visit in grouped[key]:
+                visitor = (
+                    db.query(models.Visitor).filter_by(id=visit.visitor_id).first()
+                )
+                visit.visitor = visitor
         return {"visits": grouped}
     if user.role == "GUARD":
         guard = db.query(models.Guard)
