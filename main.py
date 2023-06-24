@@ -52,7 +52,6 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata,
 )
-
 app.add_middleware(SessionMiddleware, secret_key="some-random-string")
 
 Base.metadata.create_all(bind=engine_db)
@@ -72,3 +71,19 @@ app.add_middleware(
 
 
 app.include_router(router)
+
+
+@app.get("/healthcheck")
+def healthcheck():
+    """
+    Healthcheck endpoint
+    """
+    return {"status": "ok"}
+
+
+@app.get("/")
+def index():
+    """
+    Index endpoint
+    """
+    return {"status": "ok"}
