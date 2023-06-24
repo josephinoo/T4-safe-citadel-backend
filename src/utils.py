@@ -1,3 +1,4 @@
+import itertools
 import uuid
 
 from fastapi import Response, status
@@ -26,3 +27,13 @@ def verify_qr_code(session: Session, qr_id: str, user_id: uuid.UUID):
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     visit = session.query(models.Visit).filter_by(qr_id=qr_id).first()
     return visit
+
+
+def grouped_dict(it, group_by) -> dict:
+    """
+    Group a list of dictionaries by a key.
+    """
+    grouped = {}
+    for key, group in itertools.groupby(it, lambda x: x[group_by]):
+        grouped[key] = list(group)
+    return grouped

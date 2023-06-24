@@ -12,14 +12,8 @@ models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
     prefix="/api",
-    tags=["API"],
 )
 auth_handler = AuthHandler()
-
-
-@router.get("/", tags=["Root"])
-def index():
-    return {"message": "API is running"}
 
 
 @router.post("/login/", tags=["Authorization"])
@@ -47,7 +41,7 @@ def get_user(
     return crud.get_profile(db, user_id=user_id)
 
 
-@router.get("/user/visits", tags=["User"])
+@router.get("/user/visit", tags=["User"])
 def ger_user_visits(
     request: Request,
     db: Session = Depends(get_session),
@@ -74,7 +68,20 @@ def create_visit(
     return crud.create_visit(session=db, name=name, date=date, user_id=user_id)
 
 
-@router.post("/user/update-password", tags=["Authorization"], status_code=201)
+@router.get("/visit/{visit_id}", tags=["Visit"])
+def get_visit(
+    request: Request,
+    visit_id: str,
+    db: Session = Depends(get_session),
+    user_id=Depends(auth_handler.auth_wrapper),
+):
+    """
+    Get visit by ID.
+    """
+    return crud.get_visit(session=db, visit_id=visit_id, user_id=user_id)
+
+
+@router.post("/user/update-password", tags=["User"], status_code=201)
 def update_password(auth_details: AuthDetails, db: Session = Depends(get_session)):
     """
     Update user password.
@@ -104,3 +111,13 @@ def verify_qr_code(
     Verify QR code.
     """
     return utils.verify_qr_code(session=session, qr_id=qr_id, user_id=user_id)
+
+
+@router.get("/health", tags=["Health"])
+def health_check(request: Request):
+    """
+    Health check.
+    """
+    if request.headers.get("X-Appengine-Cron") is None:
+        return {"status": "ERROR"}
+    return {"status": "OK"}

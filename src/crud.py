@@ -1,4 +1,3 @@
-import itertools
 import uuid
 from datetime import datetime
 from typing import Type  # noqa: UP035
@@ -7,7 +6,7 @@ from fastapi import Response, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, class_mapper, defer
 
-from . import models, schema
+from . import models, schema, utils
 from .auth import AuthHandler
 from .config.database import Base
 
@@ -248,12 +247,29 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
         dict: User visits.
     """
     user = db.query(models.User).filter_by(id=user_id).first()
+    if user is None:
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    if user and user.role == "RESIDENT":
-        resident = db.query(models.Resident).filter_by(user_id=user_id).first()
-        visit = db.query(models.Visit).filter_by(resident_id=resident.id).all()
-        grouped = {k: list(g) for k, g in itertools.groupby(visit, lambda t: t.state)}
+    if user.role == "RESIDENT":
+        resident = db.query(models.Resident)
+        resident = resident.join(models.User).filter(models.User.id == user_id).first()
+        if resident is None:
+            return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+        visits = db.query(models.Visit).filter_by(resident_id=resident.id).all()
+        grouped = utils.grouped_dict(visits, "state")
         return {"visits": grouped}
+    if user.role == "GUARD":
+        guard = db.query(models.Guard)
+        guard = guard.join(models.User).filter(models.User.id == user_id).first()
+        if guard is None:
+            return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+        visits = (
+            db.query(models.Visit)
+            .filter(models.Visit.date == datetime.now().date())
+            .all()
+        )
+        gruoped_visits = utils.grouped_dict(visits, "state")
+        return gruoped_visits
 
 
 def login(db: Session, auth_details: schema.AuthDetails):
@@ -292,3 +308,17 @@ def update_password(db: Session, auth_details: schema.AuthDetails):
     user.password = hash_password
     db.commit()
     return {"user": user}
+
+
+def get_visit(session: Session, visit_id: uuid.UUID, user_id: uuid.UUID):
+    """
+    Get a visit by id
+    """
+    resident = session.query(models.Resident)
+    resident = resident.join(models.User).filter(models.User.id == user_id).first()
+    if resident is None:
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+    visit = session.query(models.Visit).filter(id=visit_id).first()
+    if visit is None:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+    return visit

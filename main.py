@@ -52,6 +52,7 @@ app = FastAPI(
     },
     openapi_tags=tags_metadata,
 )
+
 app.add_middleware(SessionMiddleware, secret_key="some-random-string")
 
 Base.metadata.create_all(bind=engine_db)
