@@ -323,7 +323,7 @@ def get_visit(session: Session, visit_id: uuid.UUID, user_id: uuid.UUID):
     resident = resident.join(models.User).filter(models.User.id == user_id).first()
     if resident is None:
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
-    visit = session.query(models.Visit).filter(id=visit_id).first()
+    visit = session.query(models.Visit).filter(models.Visit.id == visit_id).first()
     if visit is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     return visit

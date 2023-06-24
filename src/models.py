@@ -3,7 +3,7 @@ from enum import Enum
 from uuid import uuid4
 
 from fastapi import Request
-from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String, Table
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import relationship
 
@@ -26,6 +26,14 @@ class Role(Enum):
     ADMIN = "ADMIN"
 
 
+residents_residences = Table(
+    "residents_residences",
+    Base.metadata,
+    Column("resident_id", UUID(as_uuid=True), ForeignKey("resident.id")),
+    Column("residence_id", UUID(as_uuid=True), ForeignKey("residence.id")),
+)
+
+
 class User(Base):
     __tablename__ = "user"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -34,10 +42,7 @@ class User(Base):
     created_date = Column(DateTime, default=datetime.utcnow)
     updated_date = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     username = Column(String, nullable=False, unique=True)
-    password = Column(
-        String,
-        nullable=True,
-    )
+    password = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
     guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id"))
@@ -99,8 +104,11 @@ class Residence(Base):
     address = Column(String, nullable=False)
     created_date = Column(DateTime, default=datetime.utcnow)
     information = Column(JSON, nullable=True)
-    resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
-    resident = relationship("Resident", back_populates="residence", uselist=False)
+    residents = relationship(
+        "Resident",
+        secondary=residents_residences,
+        back_populates="residences",
+    )
 
     async def __admin_repr__(self, request: Request):
         return f"{self.address}"
@@ -121,7 +129,11 @@ class Resident(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     phone = Column(String, nullable=False)
     user = relationship("User", back_populates="resident")
-    residence = relationship("Residence", back_populates="resident", uselist=False)
+    residences = relationship(
+        "Residence",
+        secondary=residents_residences,
+        back_populates="residents",
+    )
     visits = relationship("Visit", back_populates="resident")
 
     async def __admin_repr__(self, request: Request):
