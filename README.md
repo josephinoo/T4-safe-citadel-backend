@@ -1,16 +1,19 @@
-# Safe Citadel API 
+# Safe Citadel API
 
 The Safe Citadel API is a RESTful service designed to provide secure, fast and reliable services for managing user data.
 
-## Setup and Installation 
+[![Tests](https://github.com/josephinoo/backend/actions/workflows/pytest.yml/badge.svg)](https://github.com/josephinoo/backend/actions/workflows/pytest.yml)
 
-To get started with the Safe Citadel API, you'll need to set up a virtual environment and install the necessary dependencies. 
 
-### Prerequisites 
+## Setup and Installation
 
-You need to have Python 3.8 or later and pip installed on your system. 
+To get started with the Safe Citadel API, you'll need to set up a virtual environment and install the necessary dependencies.
 
-### Instructions 
+### Prerequisites
+
+You need to have Python 3.8 or later and pip installed on your system.
+
+### Instructions
 
 1. Clone the repository:
 
