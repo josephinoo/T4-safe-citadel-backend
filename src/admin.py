@@ -1,12 +1,33 @@
+from abc import abstractmethod
+from typing import Any, Dict
+
+from fastapi import Request
 from starlette_admin.contrib.sqla import Admin, ModelView
 
-from src.auth import MyAuthProvider
+from src.auth import AuthHandler, MyAuthProvider
 from src.models import Guard, Qr, Residence, Resident, User, Visit, Visitor
+
+auth_handler = AuthHandler()
+
+
+class UserView(ModelView):
+    @abstractmethod
+    async def create(self, request: Request, data: Dict) -> Any:
+        """
+        Create item
+        Parameters:
+            request: The request being processed
+            data: Dict values contained converted form data
+        Returns:
+            Any: Created Item
+        """
+        data["password"] = auth_handler.get_password_hash(data["password"])
+        return await super().create(request, data)
 
 
 def add_views_to_app(app, engine_db):
     admin = Admin(engine_db, title="Safe Citadel API", auth_provider=MyAuthProvider())
-    admin.add_view(ModelView(User, icon="fa fa-user", label="User"))
+    admin.add_view(UserView(User, icon="fa fa-user", label="User"))
     admin.add_view(ModelView(Resident, icon="fa fa-user"))
     admin.add_view(ModelView(Residence, icon="fa fa-home"))
     admin.add_view(ModelView(Visit, icon="fa fa-calendar"))
