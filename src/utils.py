@@ -1,5 +1,5 @@
+import itertools
 import uuid
-from collections import defaultdict
 
 from fastapi import Response, status
 from sqlalchemy.orm import Session
@@ -33,8 +33,5 @@ def grouped_dict(it, group_by) -> dict:
     """
     Group a list of dictionaries by a key.
     """
-    grouped = defaultdict(list)
-    for item in it:
-        if group_by in item:
-            grouped[item[group_by]].append(item)
-    return dict(grouped)
+    grouped = {k: list(g) for k, g in itertools.groupby(it, lambda t: t.get(group_by))}
+    return grouped

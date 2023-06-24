@@ -77,6 +77,9 @@ class Visit(Base):
     async def __admin_repr__(self, request: Request):
         return f"{self.state} - {self.date}"
 
+    def get(self, key):
+        return self.__dict__.get(key)
+
 
 class Visitor(Base):
     __tablename__ = "visitor"

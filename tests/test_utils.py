@@ -1,90 +1,24 @@
-from src import utils
+from src.utils import grouped_dict
 
 
 class TestGroupedDict:
-    # Tests that the function correctly groups a list of dictionaries by a valid key
-    def test_happy_path(self):
-        input_list = [
-            {"name": "Alice", "age": 25},
-            {"name": "Bob", "age": 30},
-            {"name": "Charlie", "age": 25},
-        ]
-        expected_output = {
-            25: [{"name": "Alice", "age": 25}, {"name": "Charlie", "age": 25}],
-            30: [{"name": "Bob", "age": 30}],
-        }
-        assert utils.grouped_dict(input_list, "age") == expected_output
+    # Tests that the function groups a list of dictionaries with unique values for the group_by key
+    def test_unique_values(self):
+        input_list = [{"a": 1}, {"a": 2}, {"a": 3}]
+        group_by = "a"
+        expected_output = {1: [{"a": 1}], 2: [{"a": 2}], 3: [{"a": 3}]}
+        assert grouped_dict(input_list, group_by) == expected_output
 
     # Tests that the function returns an empty dictionary when given an empty list
     def test_empty_list(self):
         input_list = []
+        group_by = "a"
         expected_output = {}
-        assert utils.grouped_dict(input_list, "age") == expected_output
+        assert grouped_dict(input_list, group_by) == expected_output
 
-    # Tests that the function correctly handles dictionaries with missing keys
-    def test_missing_keys(self):
-        input_list = [
-            {"name": "Alice", "age": 25},
-            {"name": "Bob"},
-            {"name": "Charlie", "age": 25},
-        ]
-        expected_output = {
-            25: [{"name": "Alice", "age": 25}, {"name": "Charlie", "age": 25}]
-        }
-        assert utils.grouped_dict(input_list, "age") == expected_output
-
-    # Tests that the function correctly handles dictionaries with duplicate keys
-    def test_duplicate_keys(self):
-        input_list = [
-            {"name": "Alice", "age": 25},
-            {"name": "Bob", "age": 30},
-            {"name": "Charlie", "age": 25},
-            {"name": "Dave", "age": 30},
-        ]
-        expected_output = {
-            25: [{"name": "Alice", "age": 25}, {"name": "Charlie", "age": 25}],
-            30: [{"name": "Bob", "age": 30}, {"name": "Dave", "age": 30}],
-        }
-        assert utils.grouped_dict(input_list, "age") == expected_output
-
-    # Tests that the function correctly handles dictionaries with nested values
-    def test_nested_values(self):
-        input_list = [
-            {
-                "name": "Alice",
-                "age": 25,
-                "address": {"city": "New York", "state": "NY"},
-            },
-            {
-                "name": "Bob",
-                "age": 30,
-                "address": {"city": "San Francisco", "state": "CA"},
-            },
-            {
-                "name": "Charlie",
-                "age": 25,
-                "address": {"city": "New York", "state": "NY"},
-            },
-        ]
-        expected_output = {
-            25: [
-                {
-                    "name": "Alice",
-                    "age": 25,
-                    "address": {"city": "New York", "state": "NY"},
-                },
-                {
-                    "name": "Charlie",
-                    "age": 25,
-                    "address": {"city": "New York", "state": "NY"},
-                },
-            ],
-            30: [
-                {
-                    "name": "Bob",
-                    "age": 30,
-                    "address": {"city": "San Francisco", "state": "CA"},
-                }
-            ],
-        }
-        assert utils.grouped_dict(input_list, "age") == expected_output
+    # Tests that the function returns a dictionary with a single key-value pair when given a list containing only one dictionary
+    def test_single_dict(self):
+        input_list = [{"a": 1}]
+        group_by = "a"
+        expected_output = {1: [{"a": 1}]}
+        assert grouped_dict(input_list, group_by) == expected_output

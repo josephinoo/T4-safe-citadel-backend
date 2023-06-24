@@ -249,8 +249,7 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
     user = db.query(models.User).filter_by(id=user_id).first()
     if user is None:
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
-
-    if user.role == "RESIDENT":
+    if user.role == models.Role.RESIDENT:
         resident = db.query(models.Resident)
         resident = resident.join(models.User).filter(models.User.id == user_id).first()
         if resident is None:
