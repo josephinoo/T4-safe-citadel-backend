@@ -21,8 +21,7 @@ sys.path.append(parent_dir)
 engine_db = engine
 
 description = """
-🏰 El Safe Citadel API es una interfaz de programación de aplicaciones (API)\n#
-diseñada para el control seguro de visitas a una ciudadela.
+🏰 El Safe Citadel API es una interfaz de programación de aplicaciones (API) diseñada para el control seguro de visitas a una ciudadela.
 ### ✨ Características:
 
 - Gestión de reservas

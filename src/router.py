@@ -3,18 +3,26 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
-from . import crud, models
+from . import crud, models, utils
 from .auth import AuthHandler
 from .config.database import engine, get_session
 from .schema import AuthDetails
 
 models.Base.metadata.create_all(bind=engine)
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api",
+    tags=["API"],
+)
 auth_handler = AuthHandler()
 
 
-@router.post("/api/login/", tags=["Authorization"])
+@router.get("/", tags=["Root"])
+def index():
+    return {"message": "API is running"}
+
+
+@router.post("/login/", tags=["Authorization"])
 def login_user(auth_details: AuthDetails, db: Session = Depends(get_session)):
     return crud.login(db, auth_details)
 
@@ -27,7 +35,7 @@ def get_visit_states(request: Request):
     return crud.get_visit_states()
 
 
-@router.get("/api/user", tags=["User"])
+@router.get("/user", tags=["User"])
 def get_user(
     request: Request,
     db: Session = Depends(get_session),
@@ -39,7 +47,7 @@ def get_user(
     return crud.get_profile(db, user_id=user_id)
 
 
-@router.get("/api/user/visits", tags=["User"])
+@router.get("/user/visits", tags=["User"])
 def ger_user_visits(
     request: Request,
     db: Session = Depends(get_session),
@@ -52,7 +60,7 @@ def ger_user_visits(
     return crud.get_user_visits(db, user_id=user_id)
 
 
-@router.post("/api/visit/", tags=["Visit"])
+@router.post("/visit/", tags=["Visit"])
 def create_visit(
     request: Request,
     name: str,
@@ -66,7 +74,7 @@ def create_visit(
     return crud.create_visit(session=db, name=name, date=date, user_id=user_id)
 
 
-@router.post("/api/user/update-password", tags=["Authorization"], status_code=201)
+@router.post("/user/update-password", tags=["Authorization"], status_code=201)
 def update_password(auth_details: AuthDetails, db: Session = Depends(get_session)):
     """
     Update user password.
@@ -74,7 +82,7 @@ def update_password(auth_details: AuthDetails, db: Session = Depends(get_session
     return crud.update_password(db, auth_details=auth_details)
 
 
-@router.get("/api/refresh", status_code=status.HTTP_200_OK, tags=["Authorization"])
+@router.get("/refresh", status_code=status.HTTP_200_OK, tags=["Authorization"])
 def get_new_access_token(token: str):
     refesh_data = auth_handler.verify_refresh_token(token)
     new_access_token = auth_handler.create_access_token(refesh_data)
@@ -83,3 +91,16 @@ def get_new_access_token(token: str):
         "token_type": "Bearer",
         "status": status.HTTP_200_OK,
     }
+
+
+@router.get("/qr/{qr_id}", tags=["QR Code"])
+def verify_qr_code(
+    request: Request,
+    qr_id: str,
+    session: Session = Depends(get_session),
+    user_id=Depends(auth_handler.auth_wrapper),
+):
+    """
+    Verify QR code.
+    """
+    return utils.verify_qr_code(session=session, qr_id=qr_id, user_id=user_id)
