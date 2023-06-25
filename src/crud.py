@@ -319,6 +319,10 @@ def get_visit(session: Session, visit_id: uuid.UUID, user_id: uuid.UUID):
     """
     Get a visit by id
     """
+    user = session.query(models.User).filter_by(id=user_id).first()
+    if user.role == models.Role.GUARD:
+        return session.query(models.Visit).filter_by(id=visit_id).first()
+
     resident = session.query(models.Resident)
     resident = resident.join(models.User).filter(models.User.id == user_id).first()
     if resident is None:
