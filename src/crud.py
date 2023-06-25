@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Type  # noqa: UP035
 
 from fastapi import Response, status
@@ -263,14 +263,17 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
                 )
                 visit.visitor = visitor
         return {"visits": grouped}
-    if user.role == "GUARD":
+    if user.role == models.Role.GUARD:
         guard = db.query(models.Guard)
         guard = guard.join(models.User).filter(models.User.id == user_id).first()
         if guard is None:
             return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+        today = date.today()
+        start_of_day = datetime.combine(today, datetime.min.time())
+        end_of_day = datetime.combine(today, datetime.max.time())
         visits = (
             db.query(models.Visit)
-            .filter(models.Visit.date == datetime.now().date())
+            .filter(models.Visit.date.between(start_of_day, end_of_day))
             .all()
         )
         gruoped_visits = utils.grouped_dict(visits, "state")
