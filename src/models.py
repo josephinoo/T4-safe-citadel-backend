@@ -5,6 +5,7 @@ from uuid import uuid4
 from fastapi import Request
 from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String, Table
 from sqlalchemy.dialects.postgresql import ENUM, UUID
+from sqlalchemy.event import listens_for
 from sqlalchemy.orm import relationship
 
 from .auth import AuthHandler
@@ -152,3 +153,24 @@ class Qr(Base):
 
     def __str__(self):
         return self.code
+
+
+@listens_for(User, "before_delete")
+def delete_related_guard_or_resident(mapper, connection, target):
+    if target.guard:
+        connection.execute(
+            User.__table__.update()
+            .where(User.guard_id == target.guard.id)
+            .values(guard_id=None)
+        )
+        connection.execute(Guard.__table__.delete().where(Guard.id == target.guard.id))
+
+    if target.resident:
+        connection.execute(
+            User.__table__.update()
+            .where(User.resident_id == target.resident.id)
+            .values(resident_id=None)
+        )
+        connection.execute(
+            Resident.__table__.delete().where(Resident.id == target.resident.id)
+        )
