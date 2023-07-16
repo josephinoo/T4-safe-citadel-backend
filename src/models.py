@@ -45,17 +45,27 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
-    resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
-    guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id"))
+    resident_id = Column(
+        UUID(as_uuid=True), ForeignKey("resident.id", ondelete="CASCADE")
+    )
+    guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id", ondelete="CASCADE"))
     resident = relationship(
-        "Resident", back_populates="user", uselist=False, foreign_keys=[resident_id]
+        "Resident",
+        back_populates="user",
+        uselist=False,
+        foreign_keys=[resident_id],
+        cascade="all, delete",
     )
     guard = relationship(
-        "Guard", back_populates="user", uselist=False, foreign_keys=[guard_id]
+        "Guard",
+        back_populates="user",
+        uselist=False,
+        foreign_keys=[guard_id],
+        cascade="all, delete",
     )
 
-    def __str__(self):
-        return self.name
+    def __repr__(self):
+        return f"User(id={self.id}, name={self.name}, role={self.role})"
 
     async def __admin_repr__(self, request: Request):
         return f"{self.name}"
@@ -71,20 +81,24 @@ class Visit(Base):
     date = Column(DateTime, nullable=False)
     state = Column(ENUM(VisitState), nullable=False, default=VisitState.PENDING)
     additional_info = Column(JSON, nullable=True)
-    qr_id = Column(UUID(as_uuid=True), ForeignKey("qr.id"))
-    visitor_id = Column(UUID(as_uuid=True), ForeignKey("visitor.id"))
-    guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id"))
-    resident_id = Column(UUID(as_uuid=True), ForeignKey("resident.id"))
+    qr_id = Column(UUID(as_uuid=True), ForeignKey("qr.id", ondelete="CASCADE"))
+    visitor_id = Column(
+        UUID(as_uuid=True), ForeignKey("visitor.id", ondelete="CASCADE")
+    )
+    guard_id = Column(UUID(as_uuid=True), ForeignKey("guard.id", ondelete="CASCADE"))
+    resident_id = Column(
+        UUID(as_uuid=True), ForeignKey("resident.id", ondelete="CASCADE")
+    )
     qr = relationship("Qr", back_populates="visit")
     visitor = relationship("Visitor", back_populates="visits")
     guard = relationship("Guard", back_populates="visits")
     resident = relationship("Resident", back_populates="visits")
 
+    def __repr__(self):
+        return f"Visit(id={self.id}, state={self.state}, date={self.date})"
+
     async def __admin_repr__(self, request: Request):
         return f"{self.state} - {self.date}"
-
-    def get(self, key):
-        return self.__dict__.get(key)
 
 
 class Visitor(Base):
@@ -94,6 +108,9 @@ class Visitor(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     visits = relationship("Visit", back_populates="visitor")
+
+    def __repr__(self):
+        return f"Visitor(id={self.id}, name={self.name})"
 
     async def __admin_repr__(self, request: Request):
         return f"{self.name}"
@@ -106,10 +123,11 @@ class Residence(Base):
     created_date = Column(DateTime, default=datetime.utcnow)
     information = Column(JSON, nullable=True)
     residents = relationship(
-        "Resident",
-        secondary=residents_residences,
-        back_populates="residences",
+        "Resident", secondary=residents_residences, back_populates="residences"
     )
+
+    def __repr__(self):
+        return f"Residence(id={self.id}, address={self.address})"
 
     async def __admin_repr__(self, request: Request):
         return f"{self.address}"
@@ -118,8 +136,13 @@ class Residence(Base):
 class Guard(Base):
     __tablename__ = "guard"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user = relationship("User", back_populates="guard")
+    user = relationship(
+        "User", back_populates="guard", uselist=False, passive_deletes=True
+    )
     visits = relationship("Visit", back_populates="guard")
+
+    def __repr__(self):
+        return f"Guard(id={self.id})"
 
     async def __admin_repr__(self, request: Request):
         return f"{self.id}"
@@ -129,19 +152,19 @@ class Resident(Base):
     __tablename__ = "resident"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     phone = Column(String, nullable=False)
-    user = relationship("User", back_populates="resident")
+    user = relationship(
+        "User", back_populates="resident", uselist=False, passive_deletes=True
+    )
     residences = relationship(
-        "Residence",
-        secondary=residents_residences,
-        back_populates="residents",
+        "Residence", secondary=residents_residences, back_populates="residents"
     )
     visits = relationship("Visit", back_populates="resident")
 
+    def __repr__(self):
+        return f"Resident(id={self.id}, phone={self.phone})"
+
     async def __admin_repr__(self, request: Request):
         return f"{self.id}"
-
-    def __str__(self):
-        return f"{self.user}"
 
 
 class Qr(Base):
@@ -151,8 +174,8 @@ class Qr(Base):
     code = Column(String, default=str(uuid4()))
     visit = relationship("Visit", back_populates="qr", uselist=False)
 
-    def __str__(self):
-        return self.code
+    def __repr__(self):
+        return f"Qr(id={self.id}, code={self.code})"
 
 
 @listens_for(User, "before_delete")

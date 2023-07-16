@@ -11,6 +11,19 @@ auth_handler = AuthHandler()
 
 
 class UserView(ModelView):
+    exclude_fields_from_list = [
+        "id",
+        "password",
+        "created_date",
+        "updated_date",
+        "resident_id",
+        "guard_id",
+        "qr_id",
+        "visitor_id",
+        "resident",
+        "guard",
+    ]
+
     @abstractmethod
     async def create(self, request: Request, data: Dict) -> Any:
         """
