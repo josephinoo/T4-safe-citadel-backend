@@ -334,3 +334,19 @@ def get_visit(session: Session, visit_id: uuid.UUID, user_id: uuid.UUID):
     if visit is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     return visit
+
+
+def register_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
+    """
+    Register a visit by QR code
+    """
+    qr = session.query(models.QR).filter_by(id=qr_id).first()
+    if qr is None:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+    visit = session.query(models.Visit).filter_by(qr_id=qr_id).first()
+    if visit.state == schema.VisitState.REGISTERED:
+        return Response(status_code=status.HTTP_409_CONFLICT)
+    visit.state = schema.VisitState.REGISTERED
+    visit.register_date = datetime.utcnow
+    session.commit()
+    return visit
