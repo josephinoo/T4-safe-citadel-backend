@@ -90,3 +90,5 @@ websockets==11.0.3
 wrapt==1.15.0
 WTForms==3.0.1
 zope.interface==6.0
+python-dotenv
+apscheduler
