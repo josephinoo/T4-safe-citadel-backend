@@ -79,6 +79,7 @@ class Visit(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     created_date = Column(DateTime, default=datetime.utcnow)
     date = Column(DateTime, nullable=False)
+    register_date = Column(DateTime, default=None)
     state = Column(ENUM(VisitState), nullable=False, default=VisitState.PENDING)
     additional_info = Column(JSON, nullable=True)
     qr_id = Column(UUID(as_uuid=True), ForeignKey("qr.id", ondelete="CASCADE"))
