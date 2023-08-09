@@ -6,7 +6,7 @@ from fastapi import Request
 from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String, Table
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.event import listens_for
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import class_mapper, relationship
 
 from .auth import AuthHandler
 from .config.database import Base
@@ -97,6 +97,21 @@ class Visit(Base):
 
     def __repr__(self):
         return f"Visit(id={self.id}, state={self.state}, date={self.date})"
+
+    def to_dict(self):
+        # Get the list of column properties
+        column_props = class_mapper(self.__class__).column_attrs
+
+        # Initialize an empty dictionary to store the attributes
+        visit_dict = {}
+
+        # Iterate through the column properties and add them to the dictionary
+        for prop in column_props:
+            prop_name = prop.key
+            prop_value = getattr(self, prop_name)
+            visit_dict[prop_name] = prop_value
+
+        return visit_dict
 
     async def __admin_repr__(self, request: Request):
         return f"{self.state} - {self.date}"

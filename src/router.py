@@ -91,8 +91,8 @@ def update_password(auth_details: AuthDetails, db: Session = Depends(get_session
 
 @router.get("/refresh", status_code=status.HTTP_200_OK, tags=["Authorization"])
 def get_new_access_token(token: str):
-    refesh_data = auth_handler.verify_refresh_token(token)
-    new_access_token = auth_handler.create_access_token(refesh_data)
+    auth_handler.verify_refresh_token(token)
+    new_access_token = auth_handler.refresh_token(token)
     return {
         "access_token": new_access_token,
         "token_type": "Bearer",

@@ -29,9 +29,9 @@ def verify_qr_code(session: Session, qr_id: str, user_id: uuid.UUID):
     return visit
 
 
-def grouped_dict(it, group_by) -> dict:
+def grouped_dict(it) -> dict:
     """
     Group a list of dictionaries by a key.
     """
-    grouped = {k: list(g) for k, g in itertools.groupby(it, lambda t: t.get(group_by))}
+    grouped = {k: list(g) for k, g in itertools.groupby(it, lambda t: t.state)}
     return grouped

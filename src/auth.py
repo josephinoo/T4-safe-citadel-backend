@@ -60,7 +60,7 @@ class AuthHandler:
             str: The encoded JWT token.
         """
         payload = {
-            "exp": datetime.utcnow() + timedelta(days=0, minutes=5),
+            "exp": datetime.utcnow() + timedelta(days=0, minutes=20),
             "iat": datetime.utcnow(),
             "sub": str(user_id),
         }
@@ -181,14 +181,28 @@ class MyAuthProvider(AuthProvider):
 
         raise LoginFailed("Invalid username or password")
 
+    async def refresh_token(self, request: Request, response: Response) -> Response:
+        refresh_token = request.cookies.get("refresh_token")
+
+        if not refresh_token:
+            raise HTTPException(status_code=400, detail="Refresh token not found")
+
+        try:
+            payload = self.verify_refresh_token(refresh_token)
+            new_access_token = self.create_access_token({"sub": payload["sub"]})
+
+            response.set_cookie("access_token", new_access_token, httponly=True)
+            return response
+
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Refresh token") from e
+
     async def is_authenticated(self, request) -> bool:
         if request.session.get("username", None) in users:
             """
             Save current `user` object in the request state. Can be used later
             to restrict access to connected user.
             """
-            print("is_authenticated")
-            print(request)
             request.state.user = users.get(request.session["username"])
             return True
 

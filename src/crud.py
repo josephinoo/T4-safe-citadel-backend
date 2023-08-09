@@ -255,7 +255,8 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
         if resident is None:
             return Response(status_code=status.HTTP_401_UNAUTHORIZED)
         visits = db.query(models.Visit).filter_by(resident_id=resident.id).all()
-        grouped = utils.grouped_dict(visits, "state")
+
+        grouped = utils.grouped_dict(visits)
         for key in grouped.keys():
             for visit in grouped[key]:
                 visitor = (
@@ -276,7 +277,7 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
             .filter(models.Visit.date.between(start_of_day, end_of_day))
             .all()
         )
-        gruoped_visits = utils.grouped_dict(visits, "state")
+        gruoped_visits = utils.grouped_dict(visits)
         return gruoped_visits
 
 
