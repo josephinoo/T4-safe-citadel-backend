@@ -134,3 +134,16 @@ def register_visit(
     Register a visit.
     """
     return crud.register_visit(session=session, qr_id=qr_id, user_id=user_id)
+
+
+@router.post("/visit/cancel", tags=["Visit"])
+def cancel_visit(
+    request: Request,
+    qr_id: str,
+    session: Session = Depends(get_session),
+    user_id=Depends(auth_handler.auth_wrapper),
+):
+    """
+    Cancel a visit.
+    """
+    return crud.canceled_visit(session=session, qr_id=qr_id, user_id=user_id)

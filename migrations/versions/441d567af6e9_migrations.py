@@ -1,8 +1,8 @@
 """migrations
 
-Revision ID: 68a8fd33c7a4
+Revision ID: 441d567af6e9
 Revises:
-Create Date: 2023-07-16 13:41:19.056308
+Create Date: 2023-08-10 21:48:42.542196
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "68a8fd33c7a4"
+revision = "441d567af6e9"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -81,8 +81,8 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), nullable=True),
         sa.Column("resident_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("guard_id", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.ForeignKeyConstraint(["guard_id"], ["guard.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["resident_id"], ["resident.id"], ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(["guard_id"], ["guard.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["resident_id"], ["resident.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("username"),
     )
@@ -91,6 +91,7 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("created_date", sa.DateTime(), nullable=True),
         sa.Column("date", sa.DateTime(), nullable=False),
+        sa.Column("register_date", sa.DateTime(), nullable=True),
         sa.Column(
             "state",
             postgresql.ENUM(
