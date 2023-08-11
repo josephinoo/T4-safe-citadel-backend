@@ -88,7 +88,15 @@ def create_visit(session: Session, name: str, date: datetime, user_id: uuid.UUID
     Returns:
         Visit: Created visit instance.
     """
+    user = session.query(models.User).filter_by(id=user_id).first()
     visit = schema.VisitCreate()
+
+    if user.role == models.Role.GUARD:
+        visit.state = schema.VisitState.REGISTERED
+        visit.date = date
+        new_visit = create_model(session, visit, models.Visit)
+        return new_visit
+
     resident = session.query(models.Resident)
     resident = resident.join(models.User).filter(models.User.id == user_id).first()
     visit.qr_id = create_qr(session).id
