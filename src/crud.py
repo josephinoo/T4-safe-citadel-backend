@@ -283,7 +283,11 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
                 visitor = (
                     db.query(models.Visitor).filter_by(id=visit.visitor_id).first()
                 )
+                resident = (
+                    db.query(models.Resident).filter_by(id=visit.resident_id).first()
+                )
                 visit.visitor = visitor
+                visit.resident = resident
         return {"visits": gruoped_visits}
 
 
