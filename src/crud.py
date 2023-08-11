@@ -278,7 +278,13 @@ def get_user_visits(db: Session, user_id: uuid.UUID):
             .all()
         )
         gruoped_visits = utils.grouped_dict(visits)
-        return gruoped_visits
+        for key in gruoped_visits.keys():
+            for visit in gruoped_visits[key]:
+                visitor = (
+                    db.query(models.Visitor).filter_by(id=visit.visitor_id).first()
+                )
+                visit.visitor = visitor
+        return {"visits": gruoped_visits}
 
 
 def login(db: Session, auth_details: schema.AuthDetails):
