@@ -110,7 +110,7 @@ def verify_qr_code(
     """
     Verify QR code.
     """
-    return utils.verify_qr_code(session=session, qr_id=qr_id, user_id=user_id)
+    return utils.verify_qr_code(db=session, qr_id=qr_id, user_id=user_id)
 
 
 @router.get("/health", tags=["Health"])

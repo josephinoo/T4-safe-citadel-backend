@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from . import models
 
 
-def verify_qr_code(session: Session, qr_id: str, user_id: uuid.UUID):
+def verify_qr_code(db: Session, qr_id: str, user_id: uuid.UUID):
     """
     Verify a QR code record in the database.
 
@@ -18,14 +18,15 @@ def verify_qr_code(session: Session, qr_id: str, user_id: uuid.UUID):
     Returns:
         QR: Verified QR instance.
     """
-    resident = session.query(models.Resident)
-    resident = resident.join(models.User).filter(models.User.id == user_id).first()
-    if resident is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND)
-    qr = session.query(models.QR).filter_by(id=qr_id).first()
+    user = db.query(models.User).filter_by(id=user_id).first()
+    if user is None:
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+    qr = db.query(models.Qr).filter_by(id=qr_id).first()
     if qr is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
-    visit = session.query(models.Visit).filter_by(qr_id=qr_id).first()
+    visit = db.query(models.Visit).filter_by(qr_id=qr_id, user_id=user_id).first()
+    if visit is None:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
     return visit
 
 
