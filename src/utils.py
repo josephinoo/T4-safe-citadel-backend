@@ -24,10 +24,22 @@ def verify_qr_code(db: Session, qr_id: str, user_id: uuid.UUID):
     qr = db.query(models.Qr).filter_by(id=qr_id).first()
     if qr is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
-    visit = db.query(models.Visit).filter_by(qr_id=qr_id, user_id=user_id).first()
+    visit = db.query(models.Visit).filter_by(qr_id=qr_id).first()
     if visit is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
-    return visit
+    resident = db.query(models.Resident).filter_by(id=visit.resident_id).first()
+    visitor = db.query(models.Visitor).filter_by(id=visit.visitor_id).first()
+    residence = (
+        db.query(models.Residence)
+        .filter(models.Residence.residents.any(id=visit.resident_id))
+        .first()
+    )
+    return {
+        "resident": resident,
+        "visitor": visitor,
+        "visit": visit,
+        "residence": residence,
+    }
 
 
 def grouped_dict(it) -> dict:

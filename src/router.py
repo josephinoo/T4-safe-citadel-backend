@@ -123,7 +123,7 @@ def health_check(request: Request):
     return {"status": "OK"}
 
 
-@router.get("/visit/register", tags=["Visit"])
+@router.post("/visit/register", tags=["Visit"])
 def register_visit(
     request: Request,
     qr_id: str,
@@ -136,7 +136,7 @@ def register_visit(
     return crud.register_visit(session=session, qr_id=qr_id, user_id=user_id)
 
 
-@router.post("/visit/cancel", tags=["Visit"])
+@router.patch("/visit/cancel", tags=["Visit"])
 def cancel_visit(
     request: Request,
     qr_id: str,

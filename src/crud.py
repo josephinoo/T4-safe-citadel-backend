@@ -351,14 +351,14 @@ def register_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
     """
     Register a visit by QR code
     """
-    qr = session.query(models.QR).filter_by(id=qr_id).first()
+    qr = session.query(models.Qr).filter_by(id=qr_id).first()
     if qr is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     visit = session.query(models.Visit).filter_by(qr_id=qr_id).first()
     if visit.state == schema.VisitState.REGISTERED:
         return Response(status_code=status.HTTP_409_CONFLICT)
     visit.state = schema.VisitState.REGISTERED
-    visit.register_date = datetime.utcnow
+    visit.register_date = datetime.utcnow()
     session.commit()
     return visit
 
@@ -367,14 +367,14 @@ def canceled_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
     """
     Cancel a visit by QR code
     """
-    qr = session.query(models.QR).filter_by(id=qr_id).first()
+    qr = session.query(models.Qr).filter_by(id=qr_id).first()
     if qr is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     visit = session.query(models.Visit).filter_by(qr_id=qr_id).first()
-    if visit.state == schema.VisitState.CANCELED:
+    if visit.state == schema.VisitState.CANCELLED:
         return Response(status_code=status.HTTP_409_CONFLICT)
-    visit.state = schema.VisitState.CANCELED
-    visit.register_date = datetime.utcnow
+    visit.state = schema.VisitState.CANCELLED
+    visit.register_date = datetime.utcnow()
     session.commit()
     return visit
 
