@@ -1,6 +1,7 @@
 aiosqlite==0.17.0
 alembic==1.11.1
 anyio==3.7.0
+APScheduler==3.10.1
 astroid==2.15.5
 async-generator==1.10
 attrs==23.1.0
@@ -40,6 +41,7 @@ Mako==1.2.4
 MarkupSafe==2.1.3
 mccabe==0.7.0
 mslib==0.2.2
+newrelic==8.10.0
 nodeenv==1.8.0
 numpy==1.25.0
 outcome==1.2.0
@@ -81,6 +83,7 @@ trio==0.22.0
 Twisted==22.10.0
 typing_extensions==4.6.3
 tzdata==2023.3
+tzlocal==5.0.1
 urllib3==2.0.3
 uvicorn==0.22.0
 uvloop==0.17.0
@@ -90,5 +93,3 @@ websockets==11.0.3
 wrapt==1.15.0
 WTForms==3.0.1
 zope.interface==6.0
-python-dotenv
-apscheduler
