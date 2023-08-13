@@ -16,7 +16,9 @@ config = context.config
 #  Making a connection
 
 
-DATABASE_URL = "postgresql://sfe:sfe@localhost/backend"
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 config.set_main_option("sqlalchemy.url", DATABASE_URL)

@@ -46,5 +46,12 @@ def grouped_dict(it) -> dict:
     """
     Group a list of dictionaries by a key.
     """
+    if it is None:
+        return {}
+    if len(it) == 0:
+        return {}
+    if isinstance(it, list):
+        if isinstance(it[0], dict):
+            return {k: list(g) for k, g in itertools.groupby(it, lambda t: t["state"])}
     grouped = {k: list(g) for k, g in itertools.groupby(it, lambda t: t.state)}
     return grouped

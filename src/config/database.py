@@ -3,11 +3,13 @@ Database Configuration
 """
 
 
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://sfe:sfe@localhost/backend"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 engine = create_engine(DATABASE_URL)
