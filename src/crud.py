@@ -350,9 +350,11 @@ def get_visit(session: Session, visit_id: uuid.UUID, user_id: uuid.UUID):
     if resident is None:
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
     visit = session.query(models.Visit).filter(models.Visit.id == visit_id).first()
+
     if visit is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
-    return visit
+    visitor = session.query(models.Visitor).filter_by(id=visit.visitor_id).first()
+    return {"visit": visit, "visitor": visitor}
 
 
 def register_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
