@@ -39,7 +39,13 @@ class UserView(ModelView):
 
 
 def add_views_to_app(app, engine_db):
-    admin = Admin(engine_db, title="Safe Citadel API", auth_provider=MyAuthProvider())
+    admin = Admin(
+        engine_db,
+        title="Safe Citadel API",
+        auth_provider=MyAuthProvider(),
+        base_url="/",
+        route_name="admin",
+    )
     admin.add_view(UserView(User, icon="fa fa-user", label="User"))
     admin.add_view(ModelView(Resident, icon="fa fa-user"))
     admin.add_view(ModelView(Residence, icon="fa fa-home"))

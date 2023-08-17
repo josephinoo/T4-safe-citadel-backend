@@ -84,14 +84,6 @@ def healthcheck():
     return {"status": "ok"}
 
 
-@app.get("/")
-def index():
-    """
-    Index endpoint
-    """
-    return {"status": "ok"}
-
-
 # Schedule the job every 24 hours
 scheduler.add_job(check_visit_expiry, "interval", hours=24)
 
