@@ -43,8 +43,7 @@ def add_views_to_app(app, engine_db):
         engine_db,
         title="Safe Citadel API",
         auth_provider=MyAuthProvider(),
-        base_url="/",
-        route_name="admin",
+        base_url="/admin",
     )
     admin.add_view(UserView(User, icon="fa fa-user", label="User"))
     admin.add_view(ModelView(Resident, icon="fa fa-user"))

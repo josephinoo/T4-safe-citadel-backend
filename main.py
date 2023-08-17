@@ -7,6 +7,7 @@ import sys
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.admin import add_views_to_app
@@ -74,6 +75,11 @@ app.add_middleware(
 
 
 app.include_router(router)
+
+
+@app.get("/")
+def rederict_admin():
+    return RedirectResponse(url="/admin")
 
 
 @app.get("/healthcheck")
