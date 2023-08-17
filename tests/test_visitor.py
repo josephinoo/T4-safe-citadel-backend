@@ -1,3 +1,5 @@
+# Dependencies:
+# pip install pytest-mock
 import pytest
 
 from src.models import Visit, Visitor
