@@ -21,6 +21,7 @@ ignore = [
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
     "B017",  # assert False,
+    "F811",
 
 ]
 exclude = [
