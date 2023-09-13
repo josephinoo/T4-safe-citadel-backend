@@ -3,6 +3,7 @@ Main module for the FastAPI application.
 """
 import os
 import sys
+import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import Depends, FastAPI
@@ -14,6 +15,9 @@ from src.admin import add_views_to_app
 from src.config.database import Base, engine, get_session
 from src.router import router
 from src.tasks import check_visit_expiry
+
+os.environ["TZ"] = "America/Guayaquil"
+time.tzset()
 
 # Agregar el directorio padre al PYTHONPATH
 current_dir = os.path.dirname(os.path.abspath(__file__))
