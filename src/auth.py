@@ -65,7 +65,7 @@ class AuthHandler:
             str: The encoded JWT token.
         """
         payload = {
-            "exp": datetime.utcnow() + timedelta(days=0, minutes=20),
+            "exp": datetime.utcnow() + timedelta(days=1, minutes=20),
             "iat": datetime.utcnow(),
             "sub": str(user_id),
         }
@@ -120,7 +120,7 @@ class AuthHandler:
             str: The refreshed JWT token.
         """
         payload = jwt.decode(token, self.secret, algorithms=["HS256"])
-        payload["exp"] = datetime.utcnow() + timedelta(days=0, minutes=20)
+        payload["exp"] = datetime.utcnow() + timedelta(days=2, minutes=20)
         return jwt.encode(payload, self.secret, algorithm="HS256")
 
     def verify_refresh_token(self, token: str):
