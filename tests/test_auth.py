@@ -94,8 +94,8 @@ class TestAuthHandler:
         auth_handler = AuthHandler()
         payload = {
             "sub": "user123",
-            "exp": datetime.datetime.utcnow() + timedelta(days=0, minutes=20),
-            "iat": datetime.datetime.utcnow(),
+            "exp": datetime.datetime.now() + timedelta(days=0, minutes=20),
+            "iat": datetime.datetime.now(),
         }
 
         # Act
@@ -122,7 +122,7 @@ class TestAuthHandler:
         # Arrange
         auth_handler = AuthHandler()
         expired_token = jwt.encode(
-            {"exp": datetime.datetime.utcnow() - timedelta(days=1)},
+            {"exp": datetime.datetime.now() - timedelta(days=1)},
             auth_handler.secret,
             algorithm="HS256",
         )

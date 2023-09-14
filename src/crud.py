@@ -374,7 +374,7 @@ def register_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
     if visit.state == schema.VisitState.REGISTERED:
         return Response(status_code=status.HTTP_409_CONFLICT)
     visit.state = schema.VisitState.REGISTERED
-    visit.register_date = datetime.utcnow()
+    visit.register_date = datetime.now()
     session.commit()
     return visit
 
@@ -390,7 +390,7 @@ def canceled_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
     if visit.state == schema.VisitState.CANCELLED:
         return Response(status_code=status.HTTP_409_CONFLICT)
     visit.state = schema.VisitState.CANCELLED
-    visit.register_date = datetime.utcnow()
+    visit.register_date = datetime.now()
     session.commit()
     return visit
 

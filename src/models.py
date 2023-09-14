@@ -40,8 +40,8 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String, nullable=False)
     role = Column(ENUM(Role), nullable=False)
-    created_date = Column(DateTime, default=datetime.utcnow)
-    updated_date = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_date = Column(DateTime, default=datetime.now)
+    updated_date = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
@@ -77,7 +77,7 @@ class User(Base):
 class Visit(Base):
     __tablename__ = "visit"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    created_date = Column(DateTime, default=datetime.utcnow)
+    created_date = Column(DateTime, default=datetime.now)
     date = Column(DateTime, nullable=False)
     register_date = Column(DateTime, default=None)
     state = Column(ENUM(VisitState), nullable=False, default=VisitState.PENDING)
@@ -121,8 +121,8 @@ class Visitor(Base):
     __tablename__ = "visitor"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     visits = relationship("Visit", back_populates="visitor")
 
     def __repr__(self):
@@ -136,7 +136,7 @@ class Residence(Base):
     __tablename__ = "residence"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     address = Column(String, nullable=False)
-    created_date = Column(DateTime, default=datetime.utcnow)
+    created_date = Column(DateTime, default=datetime.now)
     information = Column(JSON, nullable=True)
     residents = relationship(
         "Resident", secondary=residents_residences, back_populates="residences"
@@ -186,7 +186,7 @@ class Resident(Base):
 class Qr(Base):
     __tablename__ = "qr"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    created_date = Column(DateTime, default=datetime.utcnow)
+    created_date = Column(DateTime, default=datetime.now)
     code = Column(String, default=str(uuid4()))
     visit = relationship("Visit", back_populates="qr", uselist=False)
 

@@ -9,7 +9,7 @@ class TestQr:
     def test_create_qr_with_custom_parameters(self):
         # Create custom parameters for Qr object
         id = uuid4()
-        created_date = datetime.utcnow()
+        created_date = datetime.now()
         code = "custom_code"
         visit = Visit()
 
@@ -46,7 +46,7 @@ class TestQr:
     # Tests that a Qr object can be associated with a Visit object with a custom date
     def test_associate_qr_with_visit_with_custom_date(self):
         # Create custom date for Visit object
-        date = datetime.utcnow()
+        date = datetime.now()
 
         # Create Qr and Visit objects with custom date
         qr = Qr()
