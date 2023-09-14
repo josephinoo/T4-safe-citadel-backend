@@ -1,6 +1,8 @@
 """
 Auth
 """
+import os
+import time
 from datetime import datetime, timedelta
 
 import jwt
@@ -11,6 +13,9 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette_admin.auth import AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed
+
+os.environ["TZ"] = "America/Guayaquil"
+time.tzset()
 
 
 class AuthHandler:

@@ -1,9 +1,14 @@
+import os
+import time
 import uuid
 from datetime import datetime
 from enum import Enum
 from typing import Optional, Union
 
 from pydantic import UUID4, BaseModel
+
+os.environ["TZ"] = "America/Guayaquil"
+time.tzset()
 
 
 class AuthDetails(BaseModel):

@@ -1,3 +1,5 @@
+import os
+import time
 import uuid
 from datetime import date, datetime
 from typing import Type  # noqa: UP035
@@ -9,6 +11,9 @@ from sqlalchemy.orm import Session, class_mapper, defer
 from . import models, schema, utils
 from .auth import AuthHandler
 from .config.database import Base
+
+os.environ["TZ"] = "America/Guayaquil"
+time.tzset()
 
 auth_handler = AuthHandler()
 
