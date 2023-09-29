@@ -387,7 +387,7 @@ def canceled_visit(session: Session, qr_id: uuid.UUID, user_id: uuid.UUID):
     if qr is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     visit = session.query(models.Visit).filter_by(qr_id=qr_id).first()
-    if visit.state == schema.VisitState.CANCELLED:
+    if visit.state.value == schema.VisitState.CANCELLED.value:
         return Response(status_code=status.HTTP_409_CONFLICT)
     visit.state = schema.VisitState.CANCELLED
     visit.register_date = datetime.now()

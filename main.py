@@ -9,6 +9,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from fastapi_utils.tasks import repeat_every
+from sqlalchemy.orm import sessionmaker
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.admin import add_views_to_app
@@ -93,8 +95,16 @@ def healthcheck():
     return {"status": "ok"}
 
 
-# Schedule the job every 24 hours
-scheduler.add_job(check_visit_expiry, "interval", hours=24)
+# # Schedule the job every 24 hours
+# scheduler.add_job(check_visit_expiry, "interval", hours=24)
+
+
+@app.on_event("startup")
+@repeat_every(seconds=3600)
+def startup_event():
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = SessionLocal()
+    check_visit_expiry(session=session)
 
 
 @app.on_event("shutdown")
