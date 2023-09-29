@@ -4,7 +4,7 @@ import uuid
 from fastapi import Response, status
 from sqlalchemy.orm import Session
 
-from . import models
+from . import models, schema
 
 
 def verify_qr_code(db: Session, qr_id: str, user_id: uuid.UUID):
@@ -27,6 +27,11 @@ def verify_qr_code(db: Session, qr_id: str, user_id: uuid.UUID):
     visit = db.query(models.Visit).filter_by(qr_id=qr_id).first()
     if visit is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
+    if (
+        visit.state.value == schema.VisitState.REGISTERED
+        or visit.state.value == schema.VisitState.CANCELLED
+    ):
+        return Response(status_code=status.HTTP_409_CONFLICT)
     resident = db.query(models.Resident).filter_by(id=visit.resident_id).first()
     visitor = db.query(models.Visitor).filter_by(id=visit.visitor_id).first()
     residence = (
