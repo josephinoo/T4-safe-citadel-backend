@@ -150,11 +150,6 @@ users = {
         "avatar": None,
         "roles": ["read", "create", "edit", "delete", "action_make_published"],
     },
-    "johndoe": {
-        "name": "John Doe",
-        "avatar": None,  # user avatar is optional
-        "roles": ["read", "create", "edit", "action_make_published"],
-    },
     "viewer": {"name": "Viewer", "avatar": "guest.png", "roles": ["read"]},
 }
 
@@ -178,12 +173,10 @@ class MyAuthProvider(AuthProvider):
             raise FormValidationError(
                 {"username": "Ensure username has at least 03 characters"}
             )
-
-        if username in users and password == "password":
+        if username in users and password == "gsCS7QAdJj":
             """Save `username` in session"""
             request.session.update({"username": username})
             return response
-
         raise LoginFailed("Invalid username or password")
 
     async def refresh_token(self, request: Request, response: Response) -> Response:
