@@ -4,18 +4,19 @@ Auth
 import os
 import time
 from datetime import datetime, timedelta
-
+from sqlalchemy.orm import Session
 import jwt
-from fastapi import HTTPException, Security
+from fastapi import HTTPException, Security, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from src.config.database import get_session
 from passlib.context import CryptContext
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette_admin.auth import AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed
-
+from . import schema
 os.environ["TZ"] = "America/Guayaquil"
-time.tzset()
+# time.tzset()
 
 
 class AuthHandler:
@@ -50,8 +51,7 @@ class AuthHandler:
         Returns:
             bool: True if the passwords match, False otherwise.
         """
-        if plain_password == "1234":
-            return True
+
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def encode_token(self, user_id):
@@ -158,7 +158,7 @@ users = {
     "viewer": {"name": "Viewer", "avatar": "guest.png", "roles": ["read"]},
 }
 
-
+from .models import User 
 class MyAuthProvider(AuthProvider):
     """
     This is only for demo purpose, it's not a better
@@ -172,14 +172,15 @@ class MyAuthProvider(AuthProvider):
         remember_me: bool,
         request: Request,
         response: Response,
+        db: Session = Depends(get_session)
     ) -> Response:
         if len(username) < 3:
             """Form data validation"""
             raise FormValidationError(
                 {"username": "Ensure username has at least 03 characters"}
             )
-
-        if username in users and password == "password":
+        user = db.query(User).filter_by(username=username).first()
+        if user.role == "ADMIN"  : #and password == "password"
             """Save `username` in session"""
             request.session.update({"username": username})
             return response

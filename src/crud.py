@@ -13,7 +13,7 @@ from .auth import AuthHandler
 from .config.database import Base
 
 os.environ["TZ"] = "America/Guayaquil"
-time.tzset()
+# time.tzset()
 
 auth_handler = AuthHandler()
 
@@ -320,7 +320,7 @@ def login(db: Session, auth_details: schema.AuthDetails):
     user = db.query(models.User).filter_by(username=auth_details.username).first()
     if (user is None) or (
         not auth_handler.verify_password(auth_details.password, user.password)
-    ):
+    ) or (not user.is_active):
         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
     token = auth_handler.encode_token(user.id)
     refresh_token = auth_handler.refresh_token(token)
