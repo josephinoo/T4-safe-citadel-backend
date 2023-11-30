@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from numbers import Integral
 from uuid import uuid4
 
 from fastapi import Request
@@ -45,6 +46,7 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    refresh_tokens = relationship("RefreshToken", back_populates="user") #nuevo campo
     resident_id = Column(
         UUID(as_uuid=True), ForeignKey("resident.id", ondelete="CASCADE")
     )
@@ -193,7 +195,17 @@ class Qr(Base):
     def __repr__(self):
         return f"Qr(id={self.id}, code={self.code})"
 
+class RefreshToken(Base):
+    _tablename_ = 'refresh_tokens'
 
+    id = Column(Integral, primary_key=True, index=True)
+    token = Column(String, unique=True, index=True)
+    user_id = Column(Integral, ForeignKey('users.id'))  # Assuming 'users' is your user table
+
+    user = relationship("User", back_populates="refresh_tokens")
+
+# Ensure that the User model has a relationship to the RefreshToken
+    
 @listens_for(User, "before_delete")
 def delete_related_guard_or_resident(mapper, connection, target):
     if target.guard:
@@ -213,3 +225,4 @@ def delete_related_guard_or_resident(mapper, connection, target):
         connection.execute(
             Resident.__table__.delete().where(Resident.id == target.resident.id)
         )
+

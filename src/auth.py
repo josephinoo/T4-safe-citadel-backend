@@ -2,19 +2,25 @@
 Auth
 """
 import os
+import secrets
 import time
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+
+# from src.models import RefreshToken
+
+
+from .config.database import engine, get_session
 import jwt
-from fastapi import HTTPException, Security, Depends
+from fastapi import HTTPException, Security, Depends, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from src.config.database import get_session
 from passlib.context import CryptContext
+from src.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette_admin.auth import AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed
-from . import schema
+from .schema import AuthDetails
 os.environ["TZ"] = "America/Guayaquil"
 # time.tzset()
 
@@ -51,7 +57,6 @@ class AuthHandler:
         Returns:
             bool: True if the passwords match, False otherwise.
         """
-
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def encode_token(self, user_id):
@@ -143,6 +148,29 @@ class AuthHandler:
         """
         return jwt.encode(payload, self.secret, algorithm="HS256")
 
+# def login_db(user: str, passwrd: str, db: Session = Depends(get_session)):
+#     from .models import User
+#     auth_details = AuthDetails(username=user, password=passwrd)
+#     user_db  = db.query(User).filter_by(username=auth_details.username).first() 
+#     if (user_db is None) or (
+#         not AuthHandler.verify_password(auth_details.password, user.password)
+#     ) or (not user_db.is_active):
+#         return Response(status_code=status.HTTP_401_UNAUTHORIZED)
+#     token = AuthHandler.encode_token(user.id)
+#     refresh_token = AuthHandler.refresh_token(token)
+#     return {
+#         "token": token,
+#         "refresh_token": refresh_token,
+#     }
+
+
+
+def perform_login(username: str, password: str):
+    from .router import login_user
+    auth_details = AuthDetails(username=username, password=password)
+    print(auth_details)
+    # db = get_session()
+    return login_user(auth_details)
 
 users = {
     "admin": {
@@ -150,58 +178,126 @@ users = {
         "avatar": None,
         "roles": ["read", "create", "edit", "delete", "action_make_published"],
     },
-    "johndoe": {
-        "name": "John Doe",
-        "avatar": None,  # user avatar is optional
-        "roles": ["read", "create", "edit", "action_make_published"],
-    },
     "viewer": {"name": "Viewer", "avatar": "guest.png", "roles": ["read"]},
 }
 
-from .models import User 
+
 class MyAuthProvider(AuthProvider):
+    from src.models import RefreshToken
     """
     This is only for demo purpose, it's not a better
     way to save and validate user credentials
     """
-
     async def login(
-        self,
-        username: str,
-        password: str,
-        remember_me: bool,
-        request: Request,
-        response: Response,
-        db: Session = Depends(get_session)
-    ) -> Response:
-        if len(username) < 3:
-            """Form data validation"""
-            raise FormValidationError(
-                {"username": "Ensure username has at least 03 characters"}
-            )
+    self,
+    username: str,
+    password: str,
+    remember_me: bool,
+    request: Request,
+    response: Response,
+    db: Session,
+        ) -> Response:
+        from src.models import User, RefreshToken
+
         user = db.query(User).filter_by(username=username).first()
-        if user.role == "ADMIN"  : #and password == "password"
-            """Save `username` in session"""
-            request.session.update({"username": username})
-            return response
+        if user and self.verify_password(password, user.password):
+            access_token_expires = datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = self.create_access_token(
+                data={"sub": user.username}, expires_delta=access_token_expires
+            )
+
+            refresh_token = self.create_refresh_token(user.id, db)
+            db.add(RefreshToken(user_id=user.id, token=refresh_token))
+            db.commit()
+
+            tokens = {
+                "token": access_token,
+                "refresh_token": refresh_token
+            }
+            response.set_cookie(key="access_token", value=access_token, httponly=True)
+            return tokens
 
         raise LoginFailed("Invalid username or password")
 
-    async def refresh_token(self, request: Request, response: Response) -> Response:
-        refresh_token = request.cookies.get("refresh_token")
 
-        if not refresh_token:
-            raise HTTPException(status_code=400, detail="Refresh token not found")
+    # async def login(
+    #     self,
+    #     username: str,
+    #     password: str,
+    #     remember_me: bool,
+    #     request: Request,
+    #     response: Response,
+    #     db: Session, 
+    # ) -> Response:
+    #     from src.models import User
+    #     # if len(username) < 3:
+    #     #     """Form data validation"""
+    #     #     raise FormValidationError(
+    #     #         {"username": "Ensure username has at least 03 characters"}
+    #     #     )
+    #     # #Aquí entra funcion login#
+        
+    #     # # if username in users and password == "gsCS7QAdJj":
+    #     # #     """Save `username` in session"""
+    #     # #     request.session.update({"username": username})
+    #     # #     return response
+    #     # if username is not None and password is not None:
+           
+    #     #     """Save `username` in session"""
+    #     #     request.session.update({"username": username})
+    #     #     if perform_login(username, password) is not None:
+    #     #         request.session.update({"username": username})
+    #     #         return response
+    #     #     # return response
+    #     # raise LoginFailed("Invalid username or password")
+    #      # Consultar la base de datos para el usuario con el nombre de usuario proporcionado
+    #     user = db.query(User).filter_by(username=username).first()
+    #     # Verificar si el usuario existe y la contraseña es correcta
+    #     if user and self.verify_password(password, user.password):
+    #         # Guardar el nombre de usuario en la sesión
+    #         request.session.update({"username": username})
+    #         return response
 
-        try:
-            payload = self.verify_refresh_token(refresh_token)
-            new_access_token = self.create_access_token({"sub": payload["sub"]})
+    #     # Si el usuario o la contraseña son inválidos, lanzar una excepción de fallo de inicio de sesión
+    #     raise LoginFailed("Invalid username or password")
 
-            response.set_cookie("access_token", new_access_token, httponly=True)
-            return response
+    def create_refresh_token(self, user_id: int, db: Session):
+        # Generate a secure, random token
+        refresh_token = secrets.token_hex(32)
 
-        except Exception as e:
-            raise HTTPException(status_code=400, detail="Refresh token") from e
+        # Store the refresh token in the database
+        new_refresh_token = RefreshToken(user_id=user_id, token=refresh_token)
+        db.add(new_refresh_token)
+        db.commit()
+
+        return refresh_token
+    
+    def create_access_token(self, data: dict, expires_delta: datetime.timedelta = None):
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+
+    
+    # async def refresh_token(self, request: Request, response: Response) -> Response:
+    #     refresh_token = request.cookies.get("refresh_token")
+
+    #     if not refresh_token:
+    #         raise HTTPException(status_code=400, detail="Refresh token not found")
+
+    #     try:
+    #         payload = self.verify_refresh_token(refresh_token)
+    #         new_access_token = self.create_access_token({"sub": payload["sub"]})
+
+    #         response.set_cookie("access_token", new_access_token, httponly=True)
+    #         return response
+
+    #     except Exception as e:
+    #         raise HTTPException(status_code=400, detail="Refresh token") from e
 
     async def is_authenticated(self, request) -> bool:
         if request.session.get("username", None) in users:
