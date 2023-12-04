@@ -20,7 +20,7 @@ from starlette_admin.auth import AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed
 from .schema import AuthDetails
 os.environ["TZ"] = "America/Guayaquil"
-# time.tzset()
+time.tzset()
 
 
 class AuthHandler:

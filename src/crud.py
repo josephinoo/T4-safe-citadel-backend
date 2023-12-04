@@ -13,7 +13,7 @@ from .auth import AuthHandler
 from .config.database import Base
 
 os.environ["TZ"] = "America/Guayaquil"
-# time.tzset()
+time.tzset()
 
 auth_handler = AuthHandler()
 

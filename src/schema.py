@@ -8,7 +8,7 @@ from typing import Optional, Union
 from pydantic import UUID4, BaseModel
 
 os.environ["TZ"] = "America/Guayaquil"
-# time.tzset()
+time.tzset()
 
 
 class AuthDetails(BaseModel):

@@ -18,9 +18,9 @@ config = context.config
 
 import os
 
-DATABASE_URL = "postgresql://postgres:desarrollo12345@127.0.0.1:5432/safecitadel"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
