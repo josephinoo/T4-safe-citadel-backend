@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.orm import Session
 
 from . import crud, models, utils
-from .auth import AuthHandler
+from .auth import AuthHandler, MyAuthProvider
 from .config.database import engine, get_session
 from .schema import AuthDetails
 
@@ -15,10 +15,21 @@ router = APIRouter(
 )
 auth_handler = AuthHandler()
 
+@router.post("/login/")
+async def login(
+    username: str,
+    password: str,
+    remember_me: bool,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_session),
+):
+    auth_provider = MyAuthProvider()
+    return await auth_provider.login(username, password, remember_me, request,response,db)
 
-@router.post("/login/", tags=["Authorization"])
-def login_user(auth_details: AuthDetails, db: Session = Depends(get_session)):
-    return crud.login(db, auth_details)
+# @router.post("/login/", tags=["Authorization"])
+# def login_user(auth_details: AuthDetails, db: Session = Depends(get_session)):
+#     return crud.login(db, auth_details)
 
 
 @router.get("/visit/states", tags=["Visit States"])

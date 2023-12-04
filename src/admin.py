@@ -39,10 +39,11 @@ class UserView(ModelView):
 
 
 def add_views_to_app(app, engine_db):
+    auth_provider = MyAuthProvider(engine_db)
     admin = Admin(
         engine_db,
         title="Safe Citadel API",
-        auth_provider=MyAuthProvider(),
+        auth_provider= auth_provider,
         base_url="/admin",
     )
     admin.add_view(UserView(User, icon="fa fa-user", label="User"))

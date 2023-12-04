@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from numbers import Integral
 from uuid import uuid4
 
 from fastapi import Request
@@ -161,7 +162,7 @@ class Guard(Base):
         return f"Guard(id={self.id})"
 
     async def __admin_repr__(self, request: Request):
-        return f"{self.id}"
+        return f"{self.user.name}"
 
 
 class Resident(Base):
@@ -180,7 +181,7 @@ class Resident(Base):
         return f"Resident(id={self.id}, phone={self.phone})"
 
     async def __admin_repr__(self, request: Request):
-        return f"{self.id}"
+        return f"{self.user.name}"
 
 
 class Qr(Base):
@@ -194,6 +195,8 @@ class Qr(Base):
         return f"Qr(id={self.id}, code={self.code})"
 
 
+# Ensure that the User model has a relationship to the RefreshToken
+    
 @listens_for(User, "before_delete")
 def delete_related_guard_or_resident(mapper, connection, target):
     if target.guard:
@@ -213,3 +216,4 @@ def delete_related_guard_or_resident(mapper, connection, target):
         connection.execute(
             Resident.__table__.delete().where(Resident.id == target.resident.id)
         )
+

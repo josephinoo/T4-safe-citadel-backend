@@ -2,19 +2,23 @@
 Auth
 """
 import os
+import secrets
 import time
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+
+
+
+from .config.database import engine, get_session
 import jwt
-from fastapi import HTTPException, Security, Depends
+from fastapi import HTTPException, Security, Depends, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from src.config.database import get_session
 from passlib.context import CryptContext
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette_admin.auth import AdminUser, AuthProvider
 from starlette_admin.exceptions import FormValidationError, LoginFailed
-from . import schema
+from .schema import AuthDetails
 os.environ["TZ"] = "America/Guayaquil"
 # time.tzset()
 
@@ -51,7 +55,6 @@ class AuthHandler:
         Returns:
             bool: True if the passwords match, False otherwise.
         """
-
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def encode_token(self, user_id):
@@ -144,27 +147,27 @@ class AuthHandler:
         return jwt.encode(payload, self.secret, algorithm="HS256")
 
 
-users = {
-    "admin": {
-        "name": "Admin",
-        "avatar": None,
-        "roles": ["read", "create", "edit", "delete", "action_make_published"],
-    },
-    "johndoe": {
-        "name": "John Doe",
-        "avatar": None,  # user avatar is optional
-        "roles": ["read", "create", "edit", "action_make_published"],
-    },
-    "viewer": {"name": "Viewer", "avatar": "guest.png", "roles": ["read"]},
-}
 
-from .models import User 
+
 class MyAuthProvider(AuthProvider):
-    """
-    This is only for demo purpose, it's not a better
-    way to save and validate user credentials
-    """
+    from src.models import User, Role
+    login_path = '/login' 
+    logout_path = '/logout'
+    allow_paths = ['/login', '/logout']
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+    def __init__(self, engine):
+       self.engine = engine
+
+
+    def verify_password(self, plain_password, hashed_password):
+        return self.pwd_context.verify(plain_password, hashed_password)
+    
+    def is_admin(self, role):
+        return role == self.Role.ADMIN
+    
+    session = Session(bind=engine)
+    
     async def login(
         self,
         username: str,
@@ -172,58 +175,42 @@ class MyAuthProvider(AuthProvider):
         remember_me: bool,
         request: Request,
         response: Response,
-        db: Session = Depends(get_session)
     ) -> Response:
+        
+        
+        user = self.session.query(self.User).filter_by(username=username).first()
         if len(username) < 3:
             """Form data validation"""
             raise FormValidationError(
                 {"username": "Ensure username has at least 03 characters"}
             )
-        user = db.query(User).filter_by(username=username).first()
-        if user.role == "ADMIN"  : #and password == "password"
+        if user and self.verify_password(password, user.password) and self.is_admin(user.role):
             """Save `username` in session"""
             request.session.update({"username": username})
             return response
+        raise LoginFailed("Usuario o contraseña incorrecta.")
 
-        raise LoginFailed("Invalid username or password")
-
-    async def refresh_token(self, request: Request, response: Response) -> Response:
-        refresh_token = request.cookies.get("refresh_token")
-
-        if not refresh_token:
-            raise HTTPException(status_code=400, detail="Refresh token not found")
-
-        try:
-            payload = self.verify_refresh_token(refresh_token)
-            new_access_token = self.create_access_token({"sub": payload["sub"]})
-
-            response.set_cookie("access_token", new_access_token, httponly=True)
-            return response
-
-        except Exception as e:
-            raise HTTPException(status_code=400, detail="Refresh token") from e
 
     async def is_authenticated(self, request) -> bool:
-        if request.session.get("username", None) in users:
+        username = request.session.get("username", None)
+        user = self.session.query(self.User).filter_by(username=username).first()
+        if user:  
             """
             Save current `user` object in the request state. Can be used later
             to restrict access to connected user.
             """
-            request.state.user = users.get(request.session["username"])
+            request.state.user = user
             return True
 
         return False
 
     def get_admin_user(self, request: Request) -> AdminUser:
         user = request.state.user  # Retrieve current user
-        photo_url = None
-        if user["avatar"] is not None:
-            photo_url = request.url_for("static", path=user["avatar"])
-        return AdminUser(username=user["name"], photo_url=photo_url)
+        return AdminUser(username=user.name)
 
     async def logout(self, request: Request, response: Response) -> Response:
         request.session.clear()
         return response
 
     def is_accessible(self, request: Request) -> bool:
-        return "admin" in request.state.user["roles"]
+        return "ADMIN" in request.state.user.role
