@@ -46,7 +46,6 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
-    refresh_tokens = relationship("RefreshToken", back_populates="user") #nuevo campo
     resident_id = Column(
         UUID(as_uuid=True), ForeignKey("resident.id", ondelete="CASCADE")
     )
@@ -163,7 +162,7 @@ class Guard(Base):
         return f"Guard(id={self.id})"
 
     async def __admin_repr__(self, request: Request):
-        return f"{self.id}"
+        return f"{self.user.name}"
 
 
 class Resident(Base):
@@ -182,7 +181,7 @@ class Resident(Base):
         return f"Resident(id={self.id}, phone={self.phone})"
 
     async def __admin_repr__(self, request: Request):
-        return f"{self.id}"
+        return f"{self.user.name}"
 
 
 class Qr(Base):
@@ -195,14 +194,6 @@ class Qr(Base):
     def __repr__(self):
         return f"Qr(id={self.id}, code={self.code})"
 
-class RefreshToken(Base):
-    _tablename_ = 'refresh_tokens'
-
-    id = Column(Integral, primary_key=True, index=True)
-    token = Column(String, unique=True, index=True)
-    user_id = Column(Integral, ForeignKey('users.id'))  # Assuming 'users' is your user table
-
-    user = relationship("User", back_populates="refresh_tokens")
 
 # Ensure that the User model has a relationship to the RefreshToken
     
