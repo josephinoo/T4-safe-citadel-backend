@@ -148,7 +148,6 @@ class AuthHandler:
 
 
 
-
 class MyAuthProvider(AuthProvider):
     from src.models import User, Role
     login_path = '/login' 
@@ -189,7 +188,6 @@ class MyAuthProvider(AuthProvider):
             request.session.update({"username": username})
             return response
         raise LoginFailed("Usuario o contraseña incorrecta.")
-
 
     async def is_authenticated(self, request) -> bool:
         username = request.session.get("username", None)
