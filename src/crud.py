@@ -95,7 +95,8 @@ def create_visit(session: Session, name: str, date: datetime, user_id: uuid.UUID
     """
     user = session.query(models.User).filter_by(id=user_id).first()
     visit = schema.VisitCreate()
-
+    if not user.is_active:
+        return Response(status_code=status.HTTP_401_UNAUTHORIZED)
     if user.role == models.Role.GUARD:
         visit.state = schema.VisitState.REGISTERED
         visit.date = date

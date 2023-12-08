@@ -115,7 +115,7 @@ class Visit(Base):
         return visit_dict
 
     async def __admin_repr__(self, request: Request):
-        return f"{self.state} - {self.date}"
+        return f"{self.visitor.name} - {self.state}"
 
 
 class Visitor(Base):
